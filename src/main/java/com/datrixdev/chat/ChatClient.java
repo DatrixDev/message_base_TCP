@@ -28,7 +28,6 @@ public class ChatClient {
 
         out = new PrintWriter(socket.getOutputStream(), true);
 
-        // Luôn nghe dữ liệu mà Server chủ động gửi xuống
         new Thread(this::listenServer).start();
     }
 
