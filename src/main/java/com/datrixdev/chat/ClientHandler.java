@@ -24,6 +24,10 @@ public class ClientHandler extends Thread {
         start();
     }
 
+    public synchronized void send(String message) {
+        out.println(message);
+    }
+
     @Override
     public void run() {
         try {
@@ -43,27 +47,33 @@ public class ClientHandler extends Thread {
                             ip + ":" + peerPort
                     );
 
+                    DirectoryServer.onlineClients.put(
+                            username,
+                            this
+                    );
+
                     System.out.println(username + " online");
-                    out.println("SUCCESS|Dang nhap thanh cong");
+
+                    send("SUCCESS|Dang nhap thanh cong");
+
+                    DirectoryServer.broadcastOnlineUsers();
 
                 } else if (parts[0].equals("FIND") && parts.length == 2) {
                     String peerAddress =
                             DirectoryServer.onlineUsers.get(parts[1]);
 
                     if (peerAddress == null) {
-                        out.println("ERROR|Nguoi dung khong online");
+                        send("ERROR|Nguoi dung khong online");
                     } else {
-                        out.println("PEER|" + parts[1] + "|" + peerAddress);
+                        send("PEER|" + parts[1]
+                                + "|" + peerAddress);
                     }
 
                 } else if (parts[0].equals("LIST")) {
-                    out.println("USERS|" + String.join(
-                            ",",
-                            DirectoryServer.onlineUsers.keySet()
-                    ));
+                    DirectoryServer.broadcastOnlineUsers();
 
                 } else {
-                    out.println("ERROR|Lenh khong hop le");
+                    send("ERROR|Lenh khong hop le");
                 }
 
                 message = in.readLine();
@@ -74,8 +84,17 @@ public class ClientHandler extends Thread {
 
         } finally {
             if (username != null) {
-                DirectoryServer.onlineUsers.remove(username);
-                System.out.println(username + " offline");
+                boolean removed = DirectoryServer.onlineClients.remove(
+                        username,
+                        this
+                );
+
+                if (removed) {
+                    DirectoryServer.onlineUsers.remove(username);
+                    System.out.println(username + " offline");
+
+                    DirectoryServer.broadcastOnlineUsers();
+                }
             }
 
             try {

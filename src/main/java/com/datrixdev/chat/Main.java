@@ -1,7 +1,12 @@
 package com.datrixdev.chat;
 
+import javax.swing.SwingUtilities;
+
 public class Main {
     public static void main(String[] args) {
-        System.out.println("Hello world!");
+        SwingUtilities.invokeLater(() -> {
+            LoginFrame loginFrame = new LoginFrame();
+            loginFrame.setVisible(true);
+        });
     }
 }

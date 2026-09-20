@@ -1,7 +1,8 @@
 package com.datrixdev.chat;
 
-import java.io.DataInput;
 import java.io.DataInputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -21,7 +22,6 @@ public class PeerListener extends Thread {
 
     public void setEventListener(PeerEventListener eventListener) {
         this.eventListener = eventListener;
-
     }
 
     @Override
@@ -29,28 +29,83 @@ public class PeerListener extends Thread {
         try {
             while (true) {
                 Socket socket = serverSocket.accept();
+
                 new Thread(() -> handlePeer(socket)).start();
             }
-        } catch (IOException ex) {
-            System.out.println(ex);
+
+        } catch (IOException e) {
+            System.out.println("PeerListener da dung");
         }
     }
 
-    public void handlePeer(Socket socket) {
+    private void handlePeer(Socket socket) {
         try {
-            DataInputStream in = new DataInputStream(socket.getInputStream());
+            DataInputStream in = new DataInputStream(
+                    socket.getInputStream()
+            );
+
             String type = in.readUTF();
+
             if (type.equals("MESSAGE")) {
-                String form = in.readUTF();
+                String from = in.readUTF();
                 String message = in.readUTF();
+
                 if (eventListener != null) {
-                    eventListener.onMessageReceived(form, message);
+                    eventListener.onMessageReceived(from, message);
+                }
+
+            } else if (type.equals("FILE")) {
+                String from = in.readUTF();
+                String fileName = in.readUTF();
+                long fileSize = in.readLong();
+
+                File folder = new File("received_files");
+                folder.mkdirs();
+
+                File savedFile = new File(
+                        folder,
+                        new File(fileName).getName()
+                );
+
+                FileOutputStream fileOut =
+                        new FileOutputStream(savedFile);
+
+                byte[] buffer = new byte[4096];
+                long totalRead = 0;
+
+                while (totalRead < fileSize) {
+                    int bytesRead = in.read(
+                            buffer,
+                            0,
+                            (int) Math.min(
+                                    buffer.length,
+                                    fileSize - totalRead
+                            )
+                    );
+
+                    if (bytesRead == -1) {
+                        break;
+                    }
+
+                    fileOut.write(buffer, 0, bytesRead);
+                    totalRead += bytesRead;
+                }
+
+                fileOut.close();
+
+                if (eventListener != null) {
+                    eventListener.onFileReceived(
+                            from,
+                            fileName,
+                            savedFile
+                    );
                 }
             }
-        } catch (
-                IOException ex
-        ) {
-            System.out.println("Loi");
+
+            socket.close();
+
+        } catch (IOException e) {
+            System.out.println("Loi nhan du lieu P2P");
         }
     }
 

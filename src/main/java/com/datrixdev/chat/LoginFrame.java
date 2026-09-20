@@ -2,26 +2,35 @@ package com.datrixdev.chat;
 
 import javax.swing.*;
 import java.awt.*;
-import java.io.IOException;
 
 public class LoginFrame extends JFrame {
     private JTextField usernameField;
     private JLabel statusLabel;
 
     public LoginFrame() {
-        setTitle("P2P BY VO QUOC DAT - NGUYEN KY VY");
-        setSize(350,220);
+        setTitle("P2P Chat - Vo Quoc Dat");
+        setSize(350, 220);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        JPanel panel = new JPanel(new GridLayout(4,1,10,10));
-        panel.setBorder(BorderFactory.createEmptyBorder(20,25,20,25));
+        JPanel panel = new JPanel(new GridLayout(4, 1, 10, 10));
+        panel.setBorder(
+                BorderFactory.createEmptyBorder(20, 25, 20, 25)
+        );
 
-        JLabel titleLabel  = new JLabel("P2P Chat & File",SwingConstants.CENTER);
+        JLabel titleLabel = new JLabel(
+                "P2P Chat & File",
+                SwingConstants.CENTER
+        );
+
         usernameField = new JTextField();
 
-        JButton connectButton = new JButton("KET NOI");
-        statusLabel = new JLabel("Nhập tên tài khoản",SwingConstants.CENTER);
+        JButton connectButton = new JButton("Kết nối");
+
+        statusLabel = new JLabel(
+                "Nhập biệt danh",
+                SwingConstants.CENTER
+        );
 
         panel.add(titleLabel);
         panel.add(usernameField);
@@ -30,45 +39,47 @@ public class LoginFrame extends JFrame {
 
         add(panel);
 
-        connectButton.addActionListener(e ->connectToServer());
+        connectButton.addActionListener(e -> connectToServer());
     }
 
-    public void connectToServer() {
-        String userName = usernameField.getText().trim();
+    private void connectToServer() {
+        String username = usernameField.getText().trim();
 
-        if(userName.isEmpty()){
-            statusLabel.setText("Vui lòng nhập tên");
+        if (username.isEmpty()) {
+            statusLabel.setText("Vui long nhap ten");
             return;
         }
+
         new Thread(() -> {
-            try{
+            try {
                 ChatClient chatClient = new ChatClient("127.0.0.1");
-                String response = chatClient.register(userName,5001);
+                PeerListener peerListener = new PeerListener();
 
-                SwingUtilities.invokeLater(() ->
+                String response = chatClient.register(
+                        username,
+                        peerListener.getPort()
+                );
 
-                        {
-                            if(response.startsWith("SUCCESS")) {
-                                new ChatFrame(userName,chatClient).setVisible (true);
-                                dispose();
-                            }
-                            else {
-                                statusLabel.setText(response);
-                            }
-                        });
+                SwingUtilities.invokeLater(() -> {
+                    if (response.startsWith("SUCCESS")) {
+                        new ChatFrame(
+                                username,
+                                chatClient,
+                                peerListener
+                        ).setVisible(true);
 
-            } catch (IOException e) {
+                        dispose();
+                    } else {
+                        statusLabel.setText(response);
+                        peerListener.stopListener();
+                    }
+                });
+
+            } catch (Exception e) {
                 SwingUtilities.invokeLater(() ->
                         statusLabel.setText("Khong ket noi duoc Server")
                 );
             }
         }).start();
-    }
-
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            LoginFrame loginFrame = new LoginFrame();
-            loginFrame.setVisible(true);
-        });
     }
 }
