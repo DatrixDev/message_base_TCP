@@ -99,7 +99,6 @@ public class ChatFrame extends JFrame implements PeerEventListener {
 
         chatHeader.add(userHeader, BorderLayout.WEST);
         centerPanel.add(chatHeader, BorderLayout.NORTH);
-        centerPanel.add(chatHeader, BorderLayout.NORTH);
 
         messagePanel = new JPanel();
         messagePanel.setLayout(new BoxLayout(messagePanel, BoxLayout.Y_AXIS));
@@ -110,6 +109,9 @@ public class ChatFrame extends JFrame implements PeerEventListener {
         messageScrollPane.setBorder(null);
         messageScrollPane.getViewport().setBackground(new Color(245, 245, 245));
         messageScrollPane.getVerticalScrollBar().setUnitIncrement(16);
+        messageScrollPane.setHorizontalScrollBarPolicy(
+                ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER
+        );
         centerPanel.add(messageScrollPane, BorderLayout.CENTER);
         JPanel bottomPanel = new JPanel(new BorderLayout());
         bottomPanel.setBackground(Color.WHITE);
@@ -290,7 +292,15 @@ public class ChatFrame extends JFrame implements PeerEventListener {
                     int port = Integer.parseInt(address[1]);
 
                     PeerSender.sendFile(ip, port, username, selectedFile);
-                    addMessage(targetUser, "Đã gửi file: " + selectedFile.getName(), true);
+
+                    conversations.computeIfAbsent(targetUser, key -> new ArrayList<>())
+                            .add(new ChatMessage("📄 " + selectedFile.getName(), true, selectedFile));
+
+                    SwingUtilities.invokeLater(() -> {
+                        if (targetUser.equals(userList.getSelectedValue())) {
+                            showSelectedConversation();
+                        }
+                    });
                 } else {
                     SwingUtilities.invokeLater(() ->
                             JOptionPane.showMessageDialog(this, "Người dùng không online")
@@ -311,8 +321,14 @@ public class ChatFrame extends JFrame implements PeerEventListener {
 
     @Override
     public void onFileReceived(String from, String fileName, File savedFile) {
-        String text = "Đã nhận file: " + fileName + "\nLưu tại: " + savedFile.getAbsolutePath();
-        addMessage(from, text, false);
+        conversations.computeIfAbsent(from, key -> new ArrayList<>())
+                .add(new ChatMessage("📄 " + fileName, false, savedFile));
+
+        SwingUtilities.invokeLater(() -> {
+            if (from.equals(userList.getSelectedValue())) {
+                showSelectedConversation();
+            }
+        });
     }
 
     private void addMessage(String user, String text, boolean mine) {
@@ -343,7 +359,8 @@ public class ChatFrame extends JFrame implements PeerEventListener {
                 MessageBubble bubble = new MessageBubble(
                         message.getText(),
                         message.isMine(),
-                        message.isMine() ? username : selectedUser
+                        message.isMine() ? username : selectedUser,
+                        message.getFile()
                 );
                 messagePanel.add(bubble);
                 messagePanel.add(Box.createVerticalStrut(5));

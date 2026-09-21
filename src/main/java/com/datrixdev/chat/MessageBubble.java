@@ -3,9 +3,13 @@ package com.datrixdev.chat;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.io.File;
+import java.io.IOException;
 
 public class MessageBubble extends JPanel {
-    public MessageBubble(String message, boolean mine, String username) {
+    public MessageBubble(String message, boolean mine, String username, File file) {
         setOpaque(false);
         setLayout(new BorderLayout());
 
@@ -18,6 +22,26 @@ public class MessageBubble extends JPanel {
         text.setBackground(mine ? new Color(220, 235, 255) : new Color(240, 240, 240));
         text.setBorder(new EmptyBorder(10, 14, 10, 14));
         text.setColumns(25);
+
+        if (file != null) {
+            text.setCursor(new Cursor(Cursor.HAND_CURSOR));
+            text.setToolTipText("Bấm để mở file");
+
+            text.addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseClicked(MouseEvent e) {
+                    try {
+                        if (file.exists() && Desktop.isDesktopSupported()) {
+                            Desktop.getDesktop().open(file);
+                        } else {
+                            JOptionPane.showMessageDialog(MessageBubble.this, "File không tồn tại");
+                        }
+                    } catch (IOException ex) {
+                        JOptionPane.showMessageDialog(MessageBubble.this, "Không thể mở file");
+                    }
+                }
+            });
+        }
 
         JLabel avatar = new JLabel();
         avatar.setIcon(AvatarUtil.getAvatar(username, 36));

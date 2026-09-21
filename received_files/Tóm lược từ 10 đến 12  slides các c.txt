@@ -1,0 +1,3084 @@
+Tóm lược từ 10 đến 12  slides các chương:
+
+5 Sockets .
+
+6 Socket-Based Client–Server Communication
+
+7 Support for Communication-Based Services
+
+trong giáo trình: Advanced Network Programming – Principles and Techniques (73-154)
+
+
+
+Nộp lên Elearnning đứng tiên độ, hạn cuối ngày:  8.2024
+
+Lưu ý: - đặt tên file đúng như đã hướng dẫn
+
+       - chuẫn bị lên thuyết trình trước lớp
+
+, bây giờ tôi gửi nội dung cho bạn, bạn lọc ra những ý hay quan trọng để tôi làm slide như thầy yêu cầu , chỉ dùng những nội dung trong slide ko được lấy ở ngoài,slide nó có nội dung gì kèm ảnh ,  lấy ảnh cũng lấy tỏng slide luôn nên ghi số cho tôi lấy ảnh , bạn hiểu chưa , bây giờ tôi gửi nội dung của slide cho bạn 
+
+
+
+
+Chapter 5
+Sockets
+Abstract In order to support the inter-process communication, specific support has
+to be provided by both the operating system and the programming language used.
+This chapter presents and discusses sockets, as one of the major solutions employed
+by network programming for the inter-process communications. Sockets provide the
+application developer with direct basic access to transport protocols, offering data
+packet transport services between a sender and a receiver host over the network,
+while hiding the complexity and implementation details of the protocol stack below.
+Sockets’ examples are presented in details when two of the most popular transport
+protocols are employed in turn: the Transmission Control Protocol (TCP) and User
+Datagram Protocol (UDP).
+5.1 Introduction
+This chapter presents and discusses sockets, as one of the major solutions employed
+by network programming for inter-process communications. Sockets provide the
+application developer the direct basic access to transport protocols, offering data
+packet transport services between a sender and a receiver host over the network,
+while hiding the complexity and implementation details of the protocol stack below.
+Sockets examples are presented in details when the two most popular transport protocols used in the Internet are employed in turn: the Transmission Control Protocol
+(TCP) and User Datagram Protocol (UDP).
+5.2 Socket Definition and Types
+Sockets are network communication link end-points between two applications (i.e.,
+server and client). They offer basic transport data communication support and hide
+lower layer implementation details. They provide a higher level of abstraction for the
+communication infrastructure beneath and enable support for fast and easy networkbased applications development.
+The basic principle of socket-based data communication is graphically presented
+in Fig. 5.1.
+B. Ciubotaru, G.-M. Muntean, Advanced Network Programming – Principles and
+Techniques, Computer Communications and Networks,
+DOI 10.1007/978-1-4471-5292-7_5, © Springer-Verlag London 2013
+73
+www.it-ebooks.info
+74 5 Sockets
+Fig. 5.1 Socket-based network data communication
+There are two type of sockets that can be used for application development: transport layer sockets and application layer sockets.
+Transport layer sockets make use of transport-layer protocols such as the Transmission Control Protocol (TCP) [2] and User Datagram Protocol (UDP) [1]. UDP
+is a connectionless non-reliable transmission of datagrams protocol, similar to the
+postal service. TCP is a connection-based reliable, orderly transmission of data
+packets, similar to the telephone service.
+Application layer sockets make use of application-layer protocols such as the
+Hypertext Transfer Protocol (HTTP) [3] and Simple Mail Transfer Protocol (SMTP)
+[4]. HTTP is a TCP-based web page delivery service, while SMTP is a TCP-based
+e-mail delivery service.
+5.3 Socket-Based Network Communications
+The network communication using sockets involves several basic steps which have
+to be followed by the application developer in order to have a functional transport
+mechanism between the two communicating parties.
+The first step involves creating and opening sockets. Each communicating party
+requires a separate socket. When creating/opening a socket, the important parameters to be provided include the IP address, port number, and communication protocol
+(TCP or UDP).
+The second step involves establishing contact or associating the socket with another socket. In order to be able to communicate, the sockets have to use the same
+protocol. In general, the client knows the server’s IP address, port number, and the
+protocol used and contacts it using these details. Depending on the protocol, it can
+either request a service or establish a connection.
+www.it-ebooks.info
+5.3 Socket-Based Network Communications 75
+The third step consists of exchanging data between the two parties and represents
+the main stage of network application’s communication tasks. This step usually happens recursively. Information is sent and received by the two communicating sockets.
+The last step involves closing and destroying the sockets which closes the communication end-point. After this step the socket cannot be used for communication
+any more.
+5.3.1 UDP Sockets
+When using UDP sockets the connection between the client and the server is not
+maintained throughout the communication session. Each datagram packet is sent as
+an isolated transmission when necessary. There are no guarantees that the packets
+arrive in order at the destination or that the packets arrive at the destination at all.
+5.3.1.1 UDP Sockets—Server Side
+Java UDP server communication steps include the following:
+• Step 1—Create a datagram socket object.
+DatagramSocket dgramSocket =
+new DatagramSocket(portno);
+/*1024 <= portno <= 65535*/
+• Step 2—Create a buffer to store the incoming datagrams:
+byte[] buffer = new byte[256];
+/*-128 <= byte value <= 127*/
+• Step 3—Create a datagram packet object for incoming datagrams:
+DatagramPacket inPkt =
+new DatagramPacket(buffer, buffer.length);
+• Step 4—Accept an incoming datagram:
+dgramSocket.receive(inPkt);
+• Step 5—Get sender’s address and port number from the datagram:
+InetAddress cliAddress = inPkt.getAddress();
+int cliPort = inPkt.getPort();
+• Step 6—Retrieve the data from the buffer:
+String msgIn =
+new String(inPkt.getData(), 0, inPkt.getLength());
+www.it-ebooks.info
+76 5 Sockets
+• Step 7—Create the response datagram:
+msgOut = ("Message " + numMessages + ":" + messageIn);
+DatagramPacket outPkt =
+new DatagramPacket(msgOut.getBytes(),
+msgOut.length(),
+cliAddress,
+cliPort);
+• Step 8—Send the response datagram:
+dgramSocket.send(outPkt);
+• Step 9—Repeat communication if necessary:
+while(condition);
+• Step 10—Close the datagram socket:
+dgramSocket.close();
+Java UDP socket communication may throw exceptions that need to be caught
+and treated. The following example shows how to catch exceptions thrown by the
+UDP sockets.
+try{
+/*attempt to create the socket*/
+dgramSocket = new DatagramSocket(PORT);
+}
+catch (SocketException e) {
+/*this exception may be triggered when*/
+/*the port is already in use.*/
+System.out.println("Unable to attach to port!");
+System.exit(1);
+}
+The following example illustrates the use of sockets to create a server application
+using the UDP protocols for data transport.
+Server UDP Socket Communication Example:
+import java.io.*;
+import java.net.*;
+/*UDP server class.*/
+public class UDPEchoServer
+Code Listing 5.1 UDPEchoServer.java
+www.it-ebooks.info
+5.3 Socket-Based Network Communications 77
+{
+/*port used by the server.*/
+private static final int PORT = 1234;
+/*the datagram socket specific to UDP.*/
+private static DatagramSocket dgramSocket;
+/*incoming and outgoing packets objects.*/
+private static DatagramPacket inPkt, outPkt;
+/*packet data buffer.*/
+private static byte[] buffer;
+public static void main(String[] args)
+{
+System.out.println("Opening port...\n");
+try
+{
+/*create the datagram socket*/
+dgramSocket = new DatagramSocket(PORT);
+}
+catch(SocketException e)
+{
+/*handle potential exceptions.*/
+System.out.println("Error attach port!");
+System.exit(1);
+}
+run();
+}
+/*run() performs the main task of the server.*/
+private static void run() {
+try {
+/*buffers for the messages to be sent and received.*/
+String msgIn,msgOut;
+/*number of messages.*/
+int numMsgs = 0;
+do {
+/*create the packet buffer.*/
+buffer = new byte[256];
+/*create the incoming packet.*/
+inPkt = new DatagramPacket(buffer,buffer.length);
+/*receive the packet from the client.*/
+dgramSocket.receive(inPkt);
+Code Listing 5.1 (Continued)
+www.it-ebooks.info
+78 5 Sockets
+/*retrieve the sender’s IP address.*/
+InetAddress cliAddress = inPkt.getAddress();
+/*retrieve the sender’s port number.*/
+int cliPort = inPkt.getPort();
+/*store the content of the message.*/
+msgIn =
+new String(inPkt.getData(),0,inPkt.getLength());
+System.out.println("Message received.");
+/*increment the message number.*/
+numMsgs++;
+/*generate the outgoing message.*/
+msgOut = ("Msg "+numMsgs+ ": "+msgIn);
+/*create the outgoing packet.*/
+outPkt = new DatagramPacket(msgOut.getBytes(),
+msgOut.length(),cliAddress,cliPort);
+/*send the outgoing packet to the client.*/
+dgramSocket.send(outPkt);
+} while(true);
+}
+catch(IOException e) {
+e.printStackTrace();
+}
+finally{
+/*close the socket and release its resources.*/
+dgramSocket.close();
+}
+}
+}
+Code Listing 5.1 (Continued)
+5.3.1.2 UDP Sockets—Client Side
+Java UDP client communication steps include:
+• Step 1—Create a datagram socket object:
+DatagramSocket dgramSocket = new DatagramSocket;
+/*a default port no will be selected*/
+• Step 2—Create the outgoing datagram:
+www.it-ebooks.info
+5.3 Socket-Based Network Communications 79
+BufferedReader userEntry =
+new BufferedReader(new InputStreamReader(System.in));
+System.out.print("Enter message: ");
+String msg = userEntry.readLine();
+DatagramPacket outPkt =
+new DatagramPacket(msg.getBytes(),
+msg.length(), host, portno);
+• Step 3—Send the response datagram:
+dgramSocket.send(outPkt);
+• Step 4: Create a buffer to store the incoming datagrams:
+byte[] buffer = new byte[256];
+• Step 5—Create a datagram packet object for incoming datagrams:
+DatagramPacket inPkt =
+new DatagramPacket(buffer, buffer.length);
+• Step 6—Accept an incoming datagram:
+dgramSocket.receive(inPkt);
+• Step 7—Retrieve the data from the buffer:
+String msgIn =
+new String(inPkt.getData(), 0, inPkt.getLength());
+• Step 8—Close the datagram socket:
+dgramSocket.close();
+Next a client UDP socket communication example is presented.
+import java.io.*;
+import java.net.*;
+/*UDP client class*/
+public class UDPEchoClient
+{
+/*server IP*/
+private static InetAddress host;
+Code Listing 5.2 UDPEchoClient.java
+www.it-ebooks.info
+80 5 Sockets
+/*server port*/
+private static final int PORT = 1234;
+/*datagram socket*/
+private static DatagramSocket dgramSocket;
+/*incoming and outgoing packets.*/
+private static DatagramPacket inPkt, outPkt;
+/*packet buffer*/
+private static byte[] buff;
+/*messages content storage*/
+private static String msg = "", msgIn = "";
+public static void main(String[] args)
+{
+try
+{
+host = InetAddress.getLocalHost();
+/*or get InetAddress of server*/
+}
+catch(UnknownHostException e)
+{
+/*handle exception*/
+System.out.println("Host not found!");
+System.exit(1);
+}
+run();
+}
+private static void run() {
+try {
+/*create datagram socket*/
+dgramSocket = new DatagramSocket();
+/*create the buffer reader to read from the
+console*/
+BufferedReader userEntry = new BufferedReader(
+new InputStreamReader(System.in));
+do {
+System.out.print("Enter message: ");
+Code Listing 5.2 (Continued)
+www.it-ebooks.info
+5.3 Socket-Based Network Communications 81
+/*read user entry*/
+msg = userEntry.readLine();
+/*send messages until BYE is sent*/
+if (!msg.equals("BYE")) {
+/*create the packet*/
+outPkt = new DatagramPacket(msg.getBytes(),
+msg.length(), host, PORT);
+/*send the packet*/
+dgramSocket.send(outPkt);
+/*allocate packet buffer*/
+buff = new byte[256];
+/*create incoming packet*/
+inPkt = new DatagramPacket(buff, buff.length);
+/*receive incoming packet*/
+dgramSocket.receive(inPkt);
+/*store packet content*/
+msgIn = new String(inPkt.getData(),
+0, inPkt.getLength());
+System.out.println("SERVER: " + msgIn);
+}
+} while (!msg.equals("BYE"));
+}
+catch(IOException e){
+e.printStackTrace();
+}
+finally{
+/*close the socket and release its resources*/
+dgramSocket.close();
+}
+}
+}
+Code Listing 5.2 (Continued)
+5.3.2 TCP Sockets
+As TCP is a connection-oriented protocol, when TCP sockets are used, connections are established between client and server hosts. Client and server TCP sockets
+are created first and are bound for the duration of the data communication session.
+Following connection establishment, TCP packets are sent to the partner’s socket.
+www.it-ebooks.info
+82 5 Sockets
+These packets are guaranteed to arrive (if lost, retransmission occurs) and are received in order at the destination.
+Exchanging messages using TCP sockets involves a set of steps that must be
+followed by the application developer. Next these steps are presented, with the focus
+on server and client side, respectively.
+5.3.2.1 TCP Sockets—Server Side
+Java TCP server communication steps:
+• Step 1—Create a TCP server socket object.
+ServerSocket servSock = new ServerSocket(portno);
+/*1024 <= portno <= 65535*/
+• Step 2—Set the server to wait (block) for clients to connect.
+Socket sock = servSock.accept();
+/*sock is a socket object.*/
+• Step 3—Set input and output streams.
+BufferedReader in =
+new BufferedReader(
+new InputStreamReader(sock.getInputStream()));
+PrintWriter out =
+new PrintWriter(sock.getOutputStream(), true);
+• Step 4—Send and receive data.
+out.println("Waiting...");
+String msg = in.readLine();
+• Step 5—Close the connection.
+sock.close();
+Server TCP Socket Communication Example:
+import java.io.*;
+import java.net.*;
+/*TCP-based echo server*/
+public class TCPEchoServer
+{
+Code Listing 5.3 TCPEchoServer.java
+www.it-ebooks.info
+5.3 Socket-Based Network Communications 83
+/*server socket*/
+private static ServerSocket servSock;
+/*server port*/
+private static final int PORT = 1234;
+public static void main(String[] args)
+{
+System.out.println("Opening port\n");
+try
+{
+/*Create the server socket*/
+servSock = new ServerSocket(PORT);
+}
+catch(SocketException e)
+{
+/*handle potential exceptions*/
+System.out.println("Error attach port!");
+System.exit(1);
+}
+catch (IOException e)
+{
+/*handle potential exceptions*/
+System.out.println("Error create socket!");
+System.exit(1);
+}
+/*perform the echo service indefinitely*/
+do {
+run();
+}
+while (true);
+}
+private static void run() {
+/*data socket*/
+Socket sock = null;
+try {
+/*listen for incoming connections*/
+link = servSock.accept();
+/*create a socket buffer reader*/
+BufferedReader in = new BufferedReader(
+new InputStreamReader(sock.getInputStream()));
+/*create the socket writer*/
+Code Listing 5.3 (Continued)
+www.it-ebooks.info
+84 5 Sockets
+PrintWriter out = new PrintWriter(
+sock.getOutputStream(),true);
+int numMsgs = 0;
+/*read from the data socket*/
+String msg = in.readLine();
+while (!msg.equals("BYE"))
+{
+System.out.println("Message received.");
+numMsgs++;
+out.println("Message " + numMsgs + ": " + msg);
+msg = in.readLine();
+}
+out.println(numMsgs + " messages received.");
+}
+catch(IOException e) {
+e.printStackTrace(); }
+finally{
+/*close the socket*/
+try {
+sock.close();
+} catch (IOException e) {
+e.printStackTrace();
+}
+}
+}
+}
+Code Listing 5.3 (Continued)
+5.3.2.2 TCP Sockets—Client Side
+Java TCP client communication steps:
+• Step 1—Create a TCP client socket and establish a connection to the server.
+InetAddress srvIPAddr;
+int srvPortNo = 1234;
+Socket sock = new Socket(srvIPAddr.getLocalHost(),
+srvPortNo);
+/*sock is a socket object*/
+www.it-ebooks.info
+5.3 Socket-Based Network Communications 85
+• Step 2—Set input and output streams.
+BufferedReader in =
+new BufferedReader(
+new InputStreamReader(sock.getInputStream()));
+PrintWriter out =
+new PrintWriter(sock.getOutputStream(), bAutoFlush);
+• Step 3—Send and receive data.
+out.println("Waiting for data");
+String msgIn = in.readLine();
+• Step 4—Close the connection.
+sock.close();
+Client TCP socket communication example:
+import java.io.*;
+import java.net.*;
+/*TCP client class*/
+public class TCPEchoClient
+{
+/*server IP*/
+private static InetAddress host;
+/*server port*/
+private static final int PORT = 1234;
+public static void main(String[] args)
+{
+System.out.println("Opening port\n");
+try
+{
+/*create server IP address object*/
+host = InetAddress.getLocalHost();
+}
+catch(UnknownHostException e)
+{
+System.out.println("Host not found!");
+System.exit(1);
+}
+run();
+}
+Code Listing 5.4 TCPEchoClient.java
+www.it-ebooks.info
+86 5 Sockets
+private static void run()
+{
+Socket link = null;
+try
+{
+/*create data socket*/
+sock = new Socket(host, PORT);
+/*create socket reader and writer*/
+BufferedReader in = new BufferedReader(new
+InputStreamReader (sock.getInputStream()));
+PrintWriter out = new PrintWriter(
+sock.getOutputStream(), true);
+/*Set up stream for user entry*/
+BufferedReader reader =
+new BufferedReader(new
+InputStreamReader(System.in));
+/*storage for message and response message*/
+String msgOut, msgIn;
+do
+{
+System.out.print("Enter message: ");
+/*read user message*/
+msgOut = reader.readLine();
+/*send the message*/
+out.println(msgOut);
+/*read the response*/
+msgIn = in.readLine();
+System.out.println("SERVER> " + msgIn);
+} while (!message.equals("BYE"));
+}
+catch(IOException e)
+{
+e.printStackTrace();
+}
+finally
+{
+/*close the data socket*/
+Code Listing 5.4 (Continued)
+www.it-ebooks.info
+5.4 Conclusions 87
+try {
+sock.close();
+} catch (IOException e) {
+e.printStackTrace();
+}
+}
+}
+}
+Code Listing 5.4 (Continued)
+5.4 Conclusions
+This chapter has introduced sockets as the most popular solution for inter-process
+communications. Sockets have been introduced at the application and transport
+layer, respectively, allowing for network programming to focus on higher layer aspects, while the implementation details of the lower layer protocol stack are hidden.
+The chapter has described the socket-based network programming stages step-bystep with the help of examples. The sockets examples presented in details employ
+in turn TCP and UDP, respectively.
+References
+1. Postel J (August 1980) User datagram protocol. RFC 768, Internet engineering task force
+2. Postel J (1981) RFC 793—Transmission control protocol (TCP). RFC 793
+3. Fielding R, Gettys J, Mogul J, Frystyk H, Masinter L, Leach P, Berners-Lee T (1999) RFC
+2616—Hypertext transfer protocol (HTTP/1.1). RFC 2616
+4. Klensin J (2008) RFC 5321—Simple mail transfer protocol (SMTP). RFC 5321
+www.it-ebooks.info
+Chapter 6
+Socket-Based Client–Server Communication
+Abstract Sockets offer the basic mechanisms for data communication between two
+processes, each running on a distinct machine. This chapter describes the socketbased client–server communication mechanism and details the basics of client–
+server applications programming, including multi-threaded servers. Unicast, multicast, and broadcast communication paradigms are also introduced in this chapter.
+6.1 Introduction
+Client–server is a request–response remote communication model that involves processes requesting services from other processes which offer these services via the
+network.
+The processes offering services by executing certain tasks following remote process requests are known as servers. In general, the servers receive requests from
+remote processes, execute the tasks associated with these services, and dispatch
+responses back to the requesting entities. Examples of services include database
+information retrieval and updates, file system access services, and dedicated userapplication tasks.
+The processes that contact the servers and request them to perform services are
+known as clients. In general, client processes manage user-interfaces, validate data
+entered by users, dispatch requests to servers, collect servers’ responses, and process
+and/or display the information received.
+The client and server definitions were introduced in relation to service requesting
+and service providing processes, but they can equally be used for applications and
+machines. Server applications run in general on powerful computers which are often
+located in dedicated places such as data centers. Client applications usually run on
+user devices which may be desktop-PCs, laptop-PCs, netbooks, gaming consoles,
+or mobile hand-held devices. The machines which host client applications are often
+referred to as clients, and the computers which run server applications are known
+as servers. Although theoretically both the server and the client applications may
+run on the same physical machine, this is almost never the case, mostly due to the
+different requirements in terms of processing power of these machines.
+Both client-side and server-side machines may run in parallel several client and
+server applications, respectively.
+B. Ciubotaru, G.-M. Muntean, Advanced Network Programming – Principles and
+Techniques, Computer Communications and Networks,
+DOI 10.1007/978-1-4471-5292-7_6, © Springer-Verlag London 2013
+89
+www.it-ebooks.info
+90 6 Socket-Based Client–Server Communication
+Fig. 6.1 Client–server communication steps
+For example, a standard client machine would normally run several applications
+such as a web browser, an e-mail client, and maybe a media player receiving a video
+stream over the Internet. All these applications act as clients accessing services and
+content (e.g., web documents, e-mail messages, and multimedia content) from remote server applications.
+Similarly, server machines may run several applications in parallel. A good example would be a data center server machine running a web server (e.g., Apache)
+and a database server (e.g. MySQL) in parallel. Although the scope is common for
+the two services (web content delivery and database services), they represent distinct applications running on the same physical hardware platform. However, most
+of the time there is a dedicated server machine (or servers) which runs a server application, offering a single service of which multiple client applications can avail.
+The next sections will present step-by-step socket-based network programming solutions to implement such a client–server paradigm. The chapter discusses unicast,
+multicast, and broadcast communications and presents in this context relevant data
+transfer application examples.
+6.2 Basic Client–Server Application Programming
+Server and client applications often use sockets to initiate communication sessions
+and perform data and/or message exchange in a request–response manner. Basic
+socket-based solutions enable one connection to be established between a client and
+a server at a time only. The idea behind this simple solution is graphically illustrated
+in Fig. 6.1 and is described step-by-step in the context of both UDP and TCP socketbased connectivity.
+However, in most cases servers need to deal with multiple clients at a time, and
+consequently more advanced solutions are required. A very good option which prowww.it-ebooks.info
+6.3 Multi-threaded Server Applications 91
+vides good scalability is to make use of a thread-based approach for building the
+server application.
+6.3 Multi-threaded Server Applications
+A server application capable of handling multiple simultaneous clients can be built
+by making use of both multi-threading support and socket-based communications.
+Although theoretically infinite, the number of clients that a server can handle simultaneously is, in fact, limited. Indeed, the processing resources of the operating
+system and the physical machine on which the server application runs, as well as
+transport capacity of the network over which data is exchanged, limit the number of
+independent communication sessions established and managed simultaneously. We
+will present this approach in the context of a multi-threaded TCP server application
+example, which simply echoes the message received from the client application.
+This multi-threaded TCP server application makes use of a specially built socket
+communicating thread class which, given the communication socket-based link has
+been established, exchanges messages with the client application. The major steps
+for building this server application component are as follows:
+• Step 1—Create a server class which extends Thread.
+public class SingleTCPEchoServer extends Thread
+• Step 2—Get a handle to an already established communicating socket.
+/*private socket variable*/
+private static Socket sock;
+/*set the data socket*/
+sock = s;
+• Step 3—Create reader and writer objects for socket communication.
+/*BufferReader used to read data from data socket*/
+private BufferedReader in;
+/*PrinterWriter used to write to the data socket*/
+private PrintWriter out;
+/*create the BufferReader for reading from socket*/
+in = new BufferedReader(new InputStreamReader(
+sock.getInputStream()));
+/*create the PrintWriter for socket writing*/
+out = new PrintWriter(sock.getOutputStream(),true);
+• Step 4—Override run() to receive and send data.
+/*read message from the data socket (client)*/
+www.it-ebooks.info
+92 6 Socket-Based Client–Server Communication
+String msg = in.readLine();
+/*send the reply message to the client*/
+out.println("Message " + numMessages + ": " + msg);
+• Step 5—Start the thread.
+/*call the run() method*/
+start();
+• Step 6—Deal with potential exceptions.
+try{ [...] }
+catch (IOException e) { [...] }
+The full thread-based TCP socket server application example is presented next.
+import java.io.*;
+import java.net.Socket;
+/*single-threaded server class*/
+/*handles client communication*/
+public class SingleTCPEchoServer extends Thread {
+/*client data socket*/
+private static Socket sock;
+/*server port*/
+private static final int PORT = 1234;
+/*BufferReader used to read data from data socket*/
+private BufferedReader in;
+/*PrinterWriter used to write to the data socket*/
+private PrintWriter out;
+/*Constructor for the single threaded server*/
+public SingleTCPEchoServer(Socket s)
+throws IOException {
+/*set the data socket*/
+sock = s;
+/*create the BufferReader from data socket*/
+Code Listing 6.1 SingleTCPEchoServer.java
+www.it-ebooks.info
+6.3 Multi-threaded Server Applications 93
+in = new BufferedReader(new InputStreamReader(
+sock.getInputStream()));
+/*create the PrintWriter for data socket*/
+out = new PrintWriter(
+sock.getOutputStream(),true);
+/*If any of the above calls throws an exception,
+the caller will close the socket.
+Otherwise the thread will close it.*/
+/*call the run() method*/
+start();
+}
+/*run() method performs the actual task*/
+public void run()
+{
+try {
+int numMessages = 0;
+/*read message from the data socket (client)*/
+String msg = in.readLine();
+/*verify if the message is BYE*/
+while (!msg.equals("BYE"))
+{
+System.out.println("Message received.");
+/*count the number of messages received*/
+numMessages++;
+/*send the reply message to the client*/
+out.println("Message " + numMessages +
+": " + msg);
+/*read the next message*/
+msg = in.readLine();
+}
+/*at this point BYE has been received*/
+/*the server reports the number of received
+messages*/
+out.println(numMessages + " messages received.");
+}
+Code Listing 6.1 (Continued)
+www.it-ebooks.info
+94 6 Socket-Based Client–Server Communication
+catch (IOException e)
+{
+e.printStackTrace();
+}
+finally
+{
+try
+{
+System.out.println("\n Closing connection");
+/*close the data socket*/
+sock.close();
+}
+catch(IOException e)
+{
+System.out.println("Unable to disconnect!");
+System.exit(1);
+}
+}
+}/*run()*/
+}/*SingleTCPEchoServer*/
+Code Listing 6.1 (Continued)
+The multi-threaded TCP server application is, in fact, a dispatcher which creates a
+ServerSocket at the server which waits for incoming connection requests from client
+applications. This wait is performed through a blocking call to accept(). As soon as
+a client request is received, the call to accept() completes, and a new single TCP
+server application thread, built as already described, will be created. If successful in
+establishing the connection with the client, accept() returns a communicating Socket
+which is passed as a parameter to the newly created single TCP thread, enabling
+direct communication between this newly created server thread and the client. After
+the new thread is started, the multi-threaded server application call again accept()
+waiting for another client connection request. This sequence of operations continues
+over and over again and is limited just by hardware and software resources of the
+server machine. This process is illustrated in Fig. 6.2 and described step-by-step
+next.
+• Step 1—Create a server socket at a given port number.
+/*The server socket is defined as a class member.*/
+private static ServerSocket servSock;
+/*Create the server socket to listen on PORT*/
+servSock = new ServerSocket(PORT);
+www.it-ebooks.info
+6.3 Multi-threaded Server Applications 95
+Figure 6.2 Multi-threaded server paradigm
+• Step 2—In a loop wait for client connection requests.
+do
+{
+/*Blocks until a connection occurs.*/
+Socket socket = servSock.accept();
+[...]
+} while (true);
+• Step 3—For each client create a thread server to communicate via socket.
+do {
+[...]
+/*Create a thread server to handle the client.*/
+new SingleTCPEchoServer(socket);
+} while (true);
+• Step 4—Deal with potential exceptions.
+try{ [...] }
+catch (IOException e) { [...] }
+The complete multi-threaded TCP socket-based server application example is
+provided below.
+import java.io.*;
+import java.net.*;
+Code Listing 6.2 MultiTCPEchoServer.java
+www.it-ebooks.info
+96 6 Socket-Based Client–Server Communication
+/*Class implementing the multi-threaded echo server.*/
+/*This server receives a message from the clients
+*and replies with the same message back.
+*/
+public class MultiTCPEchoServer {
+/*The server socket is defined as a class member.*/
+private static ServerSocket servSock;
+/*The port number is defined as a member.*/
+/*The server will listen on this port.*/
+private static final int PORT = 1234;
+/*Data socket is defined as a member.*/
+/*Socket to be used for */
+/*communication with the client.*/
+Socket sock = null;
+/*Constructor.*/
+public MultiTCPEchoServer() { }
+/*The main function to be run
+*when the server application stars.*/
+public static void main (String[] args)
+throws IOException
+{
+System.out.println("Opening port\n");
+try
+{
+/*Create the server socket to listen on PORT*/
+servSock = new ServerSocket(PORT);
+}
+catch (IOException e)
+{
+/*Handles potential exceptions
+*thrown while the server socket is created.*/
+/*Most common exception is triggered
+*when the chosen port is already used*/
+System.out.println("Port error!");
+System.exit(1);
+}
+Code Listing 6.2 (Continued)
+www.it-ebooks.info
+6.3 Multi-threaded Server Applications 97
+/*At this point the server socket
+*was successfully created.*/
+try
+{
+/*main server loop.*/
+do
+{
+/*Server accepts connections from client.*/
+/*The Accept method blocks
+*until a connection occurs.*/
+Socket socket = servSock.accept();
+try
+{
+/*Create a single-threaded server.*/
+/*This will handle the client.*/
+new SingleTCPEchoServer(socket);
+}
+catch(IOException e)
+{
+/*Handle potential exceptions.*/
+/*As the creation of the
+*single-threaded server failed,
+*communication with the client can not start,
+*so the data socket is closed.
+*/
+socket.close();
+}
+} while (true);
+}
+finally
+{
+/*When the server end its operation,
+*the server socket is closed.
+*/
+servSock.close();
+}
+}
+}
+Code Listing 6.2 (Continued)
+This multi-threaded TCP socket-based server application example works with a
+TCP socket-based client application similar to the one presented in the chapter on
+Sockets when discussing TCP connectivity.
+www.it-ebooks.info
+98 6 Socket-Based Client–Server Communication
+6.4 Unicast, Multicast, and Broadcast Communications
+Unicast refers to one-to-one communication and in general is performed by the
+sender following a receiver request.
+Broadcast communication is when a single sender transmits data to all the devices
+connected to the network having an IP address in a certain range. This transmission
+can target all local subnet devices, all nodes in the local network, etc.
+Multi-casting involves one-to-many communications between a sender and a set
+of receivers. These receivers must belong to a multicast group, which has to be
+established prior to any data communication. This multicast group (defined using a
+class D IP address) has to be established with network support. Unfortunately, not
+all networks enable multicast transmissions. All class D IP addresses are multicast
+addresses and range from 224.0.0.0 to 235.255.255.255. Any such IP address can be
+allocated to the newly formed multicast group, provided that it has not been already
+used in the same network domain.
+The sender has to send data to the multicast group IP address. The receivers need
+to join the multicast group in order to receive data from the transmitting sender.
+However, the sender is not required to join the multicast group in order to transmit
+data.
+All members of the multicast group will receive a copy of the data transmitted by
+the server. This is enabled by the multicast-enabled routers which support multicast
+tree-like routing of packets by multiplicating data packets and sending them towards
+the receivers which belong to the multicast group. In order to stop receiving data,
+the clients have to leave the multicast group.
+As TCP is a point-to-point protocol and is most suitable for unicast transmissions,
+it cannot be used for multi-cast data delivery. Instead, UDP is the transport protocol
+used for multicast datagram packet distribution.
+In terms of implementation, broadcast data transmission can be seen as an extension of multi-cast. In order to achieve broadcasting, all connected devices need to
+join the same multicast group, and consequently they will all receive a copy of the
+packets sent by the sender. In this context, broadcast data communications represent
+a special case of multicast and will not be dealt with separately.
+In order to receive data from the server in a multicast manner, several steps have
+to be performed by the application. In the following paragraphs, these steps are
+detailed in the context of multicast receiver and sender applications, respectively.
+Java multicast receiving data application:
+• Step 1—Define port and address of multicast group to join:
+/*multicast group port number*/
+/*the server will send data to this port*/
+int PORT = 5000;
+/*multicast group IP address*/
+String GROUP = "225.4.5.6";
+www.it-ebooks.info
+6.4 Unicast, Multicast, and Broadcast Communications 99
+• Step 2—Create MulticastSocket object and bind it to port PORT
+/*MulticastSocket is a specific class
+*implementing multicast communication endpoints*/
+MulticastSocket ms = new MulticastSocket(PORT);
+• Step 3—Join the multicast group with address GROUP
+/*MulticastGroup class provides joinGroup method
+*used to join the group using its IP*/
+ms.joinGroup(InetAddress.getByName(GROUP));
+• Step 4—Create a DatagramPacket and receive a packet.
+/*allocate the packet buffer*/
+byte buf[] = byte[1024];
+/*create the packet*/
+DatagramPacket pack =
+new DatagramPacket(buf, buf.length);
+/*receive a packet from the multicast socket*/
+ms.receive(pack);
+• Step 5—Use the data received (print it on screen).
+/*print the details of the sender (server)*/
+System.out.println("Received data from: "
++ pack.getAddress().toString() + ":"
++ pack.getPort() + " with length: "
++ pack.getLength());
+/*print the message*/
+System.out.write(pack.getData(), 0,
+pack.getLength());
+/*print a new line to separate the messages.*/
+System.out.println();
+• Step 6—Leave the multicast group and close the socket.
+/*use leaveGroup to leave the multicast group*/
+ms.leaveGroup(InetAddress.getByName(group));
+/*close the multicast socket*/
+ms.close();
+On the sender side, the application has to follow another set of steps in order to
+be able to send data to a multicast group. In the following paragraphs, these steps
+are detailed.
+Java multicast sending data application:
+• Step 1—Define port, address of multicast group to send to and time-to-live.
+/*port number to which the packets will be send*/
+int PORT = 5000;
+www.it-ebooks.info
+100 6 Socket-Based Client–Server Communication
+/*the multicast group IP address*/
+String GROUP = "225.4.5.6";
+/*time-to-live for packets sent
+to the multicast group*/
+byte TTL = 3;
+/*Note: The TTL sets the IP time-to-live
+specifying over how many "hops"
+the packets will be forwarded in the
+MulticastGroup before they expire.*/
+• Step 2—Create MulticastSocket object.
+/*create the multicast socket*/
+MulticastSocket ms = new MulticastSocket();
+• Step 3—Create a DatagramPacket and copy some data in it.
+/*create the packet buffer*/
+byte buf[] = byte[1024];
+/*generate a message into the buffer*/
+for (int i = 0; i < buf.length; i++)
+buf[i] = (byte)i;
+/*create the datagram packet*/
+/*the multicast IP address is used
+*for the creation of this packet*/
+DatagramPacket pack =
+new DatagramPacket(buf, buf.length,
+InetAddress.getByName(GROUP), PORT);
+• Step 4—Send the DatagramPacket to the multicast group.
+/*send the packet specifying
+the TTL as a parameter*/
+ms.send(pack, TTL);
+• Step 5—Close the socket.
+/*close the multicast socket*/
+ms.close();
+6.5 Conclusion
+This chapter has introduced the client–server communication paradigm and in its
+context has presented a step-by-step socket-based network programming example
+to implement a relevant application. The chapter then discussed unicast, multicast,
+and broadcast communications and presented a multi-cast data transfer application
+example which can also be used for data broadcast.
+www.it-ebooks.info
+Chapter 7
+Support for Communication-Based Services
+Abstract In most cases, network communication is all about providing and accessing services. This chapter introduces the support offered by the Java programming
+language for various communication-based services. Control and diagnostic services including Packet InterNet Groper and Internet Control Message Protocol are
+presented. Electronic mail services making use of the SMTP and POP3 protocols,
+file transfer services using FTP, and web content transfer via HTTP are described.
+Java database connectivity services and programming support for database management systems communication are also discussed. The chapter ends with a presentation of the increasingly popular multimedia content delivery services.
+7.1 Introduction
+All network applications and services require some form of communication support
+and often they employ the client–server paradigm. Such applications and services
+include control and diagnostic services, e-mail, file transfer, web content exchange,
+and database access services.
+Control and diagnostic services require communication mechanisms to support
+status information exchange in request–response manner and transmission of messages (often regular) to communication partners for information purposes via networks.
+The e-mail service involves e-mail clients running on user terminals exchanging
+electronic messages with e-mail servers. These servers provide support for message
+storage and forwarding to destination e-mail servers via the network. Remote clients
+communicate with the e-mail servers for access to the received electronic messages
+and/or for sending other information. The e-mail service is based on both client–
+server and server–server network communications.
+File transfer applications also use a client–server model. File transfer client applications running on user devices allow for local file access and, most importantly,
+remote file access in terms of upload and download to and from file servers. Additionally, these file applications have limited file management functions such as
+folder creation, deletion, etc., both locally and remotely.
+Web applications use network communications support to enable the delivery of
+web documents to web clients (i.e., web browsers such as Firefox, Internet Explorer,
+B. Ciubotaru, G.-M. Muntean, Advanced Network Programming – Principles and
+Techniques, Computer Communications and Networks,
+DOI 10.1007/978-1-4471-5292-7_7, © Springer-Verlag London 2013
+101
+www.it-ebooks.info
+102 7 Support for Communication-Based Services
+Chrome, or Safari). The web clients send requests for the documents (web-pages)
+to web servers which either retrieve or generate them dynamically and deliver them
+to the client via networks.
+Remote database access services can be seen as a particular case of web applications which involve clients establishing network connectivity with servers which
+have access to databases. Once security aspects have been cleared, the clients are
+able to run remote queries on the database, retrieve, and process the data.
+This chapter presents the protocols these communication-based applications and
+services rely on and describes step-by-step, with the help of examples, how applications built on top of these protocols can be developed using Java.
+7.2 Control and Diagnostic Services
+7.2.1 Packet InterNet Groper
+Packet InterNet Groper (PING) is a network utility available in most of the operating systems used today. PING is used in diagnosing network problems as well
+as requesting and receiving performance-related information in terms of delay and
+packet loss.
+The name (PING) comes from an active sonar terminology which sends a sound
+pulse and then listens for the echo in order to detect objects underwater. Similar to
+the sonar, PING sends one or several data packets to a host and waits for an identical
+reply from the destination machine.
+PING assumes that if the host machine replies to the received packet, it exists and
+is connected to the network. Moreover, PING measures the time elapsed between
+sending the data packet and receiving the echo packet from the target host (roundtrip-time). Lost packets are also recorded so packer loss can also be estimated. These
+two aspects provide a significant metric for learning about the status of a host and for
+estimating the performance of the network connecting the host to the client machine.
+PING uses the Internet Control Message Protocol (ICMP) protocol to send the
+data packet and receive the expected echo packet as response [12].
+7.2.2 Internet Control Message Protocol
+ICMP [12] is an unreliable transport layer protocol that uses network layer services
+offered by the IP protocol [13]. ICMP was standardized as RFC 792 in 1981, making
+it not only one the oldest protocols in operation today, but also one still widely used
+by network administrators.
+ICMP verifies the correct operation of an IP host and checks that routers are
+correctly routing packets to the specified destination address.
+www.it-ebooks.info
+7.2 Control and Diagnostic Services 103
+Fig. 7.1 Internet Control Message Protocol (ICMP)
+Fig. 7.2 ICMP packet format
+The basic principle of ICMP is presented in Fig. 7.1. It can be seen how a simple
+ICMP request packet is sent from the client host machine to the remote host via
+the network and the target machine replies with an identical copy of the message
+received addressed this time to the sender.
+The ICMP packet fields include Type, Code, ICMP Header Checksum (CRC),
+and Data.
+Type is an 8 bit field and indicates the type of the ICMP message. Mostly used
+types are Echo reply (0), Destination unreachable (3), Echo request (8), Time exceeded (11). Based on the Type field, the format of the ICMP packet may change.
+Code is an 8 bit field which further qualifies the ICMP message type by offering
+extra information. For instance, for a Type=3 message (destination unreachable),
+most often used codes are Net Unreachable (0), Host Unreachable (1), Protocol
+Unreachable (2), and Port Unreachable (3).
+ICMP Header Checksum is a 16 bit field and represents the checksum for the
+whole ICMP message. This field is used to determine if the packet has been received
+correctly and no information has been altered in transit. The data in this field is
+the 16-bit one’s complement of the one’s complement sum of the ICMP message
+starting with the Type field.
+Data is a variable-length field which contains the data specific to the message
+type indicated by Type and Code fields.
+The detailed format of data packets used by ICMP is illustrated in Fig. 7.2.
+7.2.3 PING Java Example
+Java does not offer direct support to implement applications that use PING to diagnose hosts within the network and check network basic functionality. There is a
+complete Oracle PING implementation example [14], but it is very complex and
+often difficult to understand in terms of network connectivity support. Instead, a
+simpler PING solution which uses the java.nio.DatagramChannel class and extends
+www.it-ebooks.info
+104 7 Support for Communication-Based Services
+an existing solution [15] is presented. This solution involves several implementation
+steps, which are described next.
+• Step 1—Import a network datagram I/O class
+import java.nio.DatagramChannel;
+• Step 2—Create and open a DatagramChannel.
+/*Create and open a DatagramChannel object*/
+DatagramChannel ch = DatagramChannel.open();
+• Step 3—Connect the channel to a remote host.
+/*Set remote host IP Address and port no*/
+InetSocketAddress addr =
+new InetSocketAddress("136.206.35.201", 7);
+/*Connect the channel*/
+ch.connect(addr);
+• Step 4—Prepare send and receive buffers.
+/*Create the buffer for the outgoing packet*/
+ByteBuffer sbuff =
+ByteBuffer.wrap("PING".getBytes());
+/*Create the buffer for the incoming packet*/
+ByteBuffer rbuff =
+ByteBuffer.allocate("PING".getBytes().length);
+• Step 5—Send and receive packets.
+/*Send an outgoing packet*/
+ch.send(sbuff, addr);
+/*Wait for the response*/
+Thread.sleep(200);
+/*Receive the echo packet if any*/
+ch.receive(rbuff);
+String rtxt = new String(rbuff.array());
+• Step 6—Check the content of receiving packet.
+if (rtxt.equals("PING"))
+System.out.println("PING: Remote host is OK.");
+else
+System.out.println("PING: Communication issue.");
+In order for this basic PING example to work, remote host’s echo services need
+to be enabled and also permissive rules have to be set in the network’s firewalls.
+Unfortunately, many operating systems have the echo service disabled by default.
+The basic PING Java example is presented next.
+www.it-ebooks.info
+7.2 Control and Diagnostic Services 105
+import java.net.*;
+import java.nio.*;
+import java.nio.channels.*;
+/*method to send ping messages and receive responses*/
+public void basicPing()
+{
+try {
+/*Count number of tries*/
+int count = 0;
+/*Create the buffer for the outgoing packet*/
+ByteBuffer sbuff =
+ByteBuffer.wrap("PING".getBytes());
+/*Create the buffer for the incoming packet.
+*As the incoming packet is expected to be
+*an identical copy of the outgoing packet
+*the same buffer size has been used.
+*/
+ByteBuffer rbuff =
+ByteBuffer.allocate("PING".getBytes().length);
+/*Connect the channel to the remote host
+*using an InetSocketAddress
+*using the default echo port 7
+*/
+InetSocketAddress addr =
+new InetSocketAddress("136.206.35.201", 7);
+/*Create and open a DatagramChannel*/
+DatagramChannel ch = DatagramChannel.open();
+/*Set the channel as non-blocking*/
+ch.configureBlocking(false);
+/*Connect the channel*/
+ch.connect(addr);
+String rtxt = "";
+do
+{
+/*Send the outgoing packet*/
+ch.send(sbuff, addr);
+Code Listing 7.1 PingClient.java—basicPing()
+www.it-ebooks.info
+106 7 Support for Communication-Based Services
+/*Wait for the response*/
+Thread.sleep(200);
+/*Receive the echo packet if any*/
+ch.receive(rbuff);
+rtxt = new String(rbuff.array());
+/*increment count*/
+count++;
+}
+while (!rtxt.equals("PING") && count < 3);
+if (rtxt.equals("PING"))
+System.out.println("PING: Remote host is OK");
+else
+System.out.println("PING: Communication issue");
+}
+catch(Exception e)
+{
+/*Print the exception message.*/
+System.out.println(e.getMessage());
+}
+}
+Code Listing 7.1 (Continued)
+7.3 Electronic Mail Services
+Lately, electronic mail services (e-mail) are one of the most widely used means of
+communications. Exchanging e-mails involves clients sending electronic messages
+to other clients. In practice, sending client applications enable messages to be written and sent to local e-mail hosts (e-mail servers) which in turn forward them to the
+receiving clients’ remote e-mail servers via the network. The remote clients contact
+their e-mail servers and if there are received messages, they are retrieved and offered
+for reading to the users.
+In this context, the e-mail service system is composed of User Agents (UA) and
+Message Transfer Agents (MTA). The UAs allow the users to send and retrieve messages and may also provide graphical user interfaces. The MTAs enable transfers of
+messages from the source host to the destination. In general, UAs are deployed at
+the clients and MTAs operate at the e-mail servers.
+This e-mail message exchange system involves several services provided by UA
+and MTA modules.
+Composition is provided by UAs and refers to the creation of both original and
+reply messages at the level of clients.
+www.it-ebooks.info
+7.3 Electronic Mail Services 107
+Figure 7.3 E-mail message exchange system—components, protocols, and principle
+Figure 7.4 E-mail message
+format
+Message transfer is supported by MTAs and refers to the delivery of messages
+from source to destination, including local client–server data exchange in which
+UAs are also involved.
+Reporting is also provided by MTAs and involves informing the sender about the
+status of the messages sent.
+Displaying is provided by UAs through the user interface and involves presenting the messages so that they can be accessed by the users. Depending on the type
+of content, sometimes the messages need to be converted before displaying. Often
+other programs are invoked, such as plug-ins (embedded in the e-mail client applications) or stand-alone applications (independent from the e-mail client applications).
+Disposition, managed by the UAs, refers to what the remote user does with the
+messages (e.g., save, delete, etc.).
+Figure 7.3 shows the basic principle of the e-mail service, including the message
+exchange system major components and communication protocols. These protocols are the Simple Mail Transfer Protocol (SMTP), Post-Office Protocol version 3
+(POP3), and Internet Message Access Protocol (IMAP).
+The e-mail message structure involves an envelope, a header, and a body, as
+outlined in Fig. 7.4. This has been formalized in RFC 822 [16] and RFC 2822 [17].
+The envelope encapsulates the message and contains all the information required
+to transport the message such as destination address, priority, and security level.
+The header contains the control information required to display the message (e.g.,
+date, subject). The body represents the message content, which is most useful to the
+human user. The message body was originally text only, but lately there was a clear
+need to allow for addition of other media formats.
+The Multipurpose Internet Mail Extensions (MIME) is a standard (RFC
+1341, RFC 2045-2049) [18], [19] that extends the original format of the e-mail
+messages to support extra features and encoding rules for non-ASCII messages.
+These features include characters with accents (e.g., in French, German, etc.), text
+in non-Latin alphabets (e.g., Cyrilic, Hebrew, etc.), text in non-alphabetic languages (e.g., Chinese, Japanese), non-text data (e.g., multimedia, images, audio),
+etc.
+www.it-ebooks.info
+108 7 Support for Communication-Based Services
+MIME defines five new message headers. The new headers include:
+• MIME-Version—Indicates MIME version;
+• Content-Description—String describing the content;
+• Content-Id—Unique identifier;
+• Content-Transfer-Encoding—How body is wrapped for transmission (e.g., 7-bit
+ASCII, 8-bit codes, base64 binary, etc.);
+• Content-Type—Type and format of content. The standard defines 7 types of content as follows: Text (Plain, Enriched), Image (Gif, Jpeg), Audio (Basic), Video
+(Mpeg), Application, Message (RFC 822, Partial, External-body), and Multipart.
+Messages not including the MIME-Version header are assumed to be in English
+plain text.
+Simple Mail Transfer Protocol (SMTP), standardized as RFC 821 [20], allows
+messages to be sent from UA located at the client to MTA situated at server side.
+SMTP works on top of TCP and in general uses port 25.
+The client initiates the TCP connection with the server and waits for the server
+to state it is ready for data reception. After the server confirms it is ready, the communication sequence commences in a command–response manner. The client sends
+commands, and the server responds with command status messages. Status messages include ASCII encoded numeric codes and details in text. The order of the
+commands is very important for the success of the message sending operation.
+SMTP commands include:
+• HELO—identifies the client;
+• MAIL FROM:—starts a mail transfer session and identifies the mail sender;
+• RCPT TO:—identifies the mail recipient; There may be multiple RCPT TO: commands;
+• DATA:—sender ready to transmit a series of lines of text, each ending with
+CR&LF. A line containing a period only indicates the end of the data;
+• QUIT:—request to finish the session and close the connection.
+The extended SMTP (ESMTP) was defined in RFC 2821 [21]. EHLO is the new
+command for identifying the client as RFC 2821 compatible. If the SMTP server
+recognizes this command, often it sends a list of the available ESMTP commands
+back to the client. They include AUTH used for authentication purposes, STARTTLS employed for secure data transfer, and SIZE used to allow the client to indicate
+the message size or the server to specify the available buffer space. Other set of
+commands and parameters are also defined.
+The Post-Office Protocol version 3 (POP3), standardized in RFC 1939 [22],
+allows messages stored on the e-mail server to be accessed by the client. POP3 involves collaboration between the client-located UA and server’s MTA. POP3 works
+on top of TCP and in general uses port 110.
+POP3 requires a client–server connection to be established before client–server
+message exchange is permitted. The protocol message sequence includes the following stages. After the client connects to the server, it waits for the server to state it is
+ready. Once the server confirms its availability, the client starts sending commands
+which determine the server to perform actions and respond with status messages.
+www.it-ebooks.info
+7.3 Electronic Mail Services 109
+Table 7.1 IMAP vs. POP3
+Protocol RFC TCP port Email store Email read Mailboxes Partial message
+POP3 1939 110 Client Offline Simple No
+IMAP 2060 143 Server Online Multiple Yes
+POP3 requires sequential passing through three states: Authorization, Transaction, Update.
+During the Authorization phase the client sends username and password details
+to the server. The following commands are involved:
+• USER username—specifies the username;
+• PASS password—indicates the password.
+Only the authorized clients are allowed to proceed to the next stage.
+During the Transactions phase, the client is allowed to retrieve the list of messages or a particular one, in a similar command–response fashion. The client may
+mark for deletion some (or all) of the messages. The following commands are involved:
+• LIST—lists the e-mails received in order;
+• RETR no—retrieves message number no;
+• DELE no—marks for deletion message number no.
+During the Update phase, the QUIT command is sent by the client and when
+receiving it, the server actually deletes all messages marked for deletion then sends
+a disconnect message, and disconnects the client.
+POP3 allows the client to download the messages to the client’s machine and
+manipulate them offline.
+The Internet Message Access Protocol (IMAP), standardized in RFC 2060
+[23], is also used to enable client access to the e-mail messages on the server. IMAP
+works on top of TCP and in general listens at port 143.
+The fundamental difference between POP3 and IMAP is that the latter assumes
+that the server keeps all the messages and the client accesses them online only. There
+is no message copy retrieved and stored by the client locally.
+Additionally, IMAP enables the user to have and manipulate multiple mailboxes
+and permits e-mail access from multiple locations.
+IMAP requires client–server connectivity as well. The command–response
+IMAP message sequence includes the following stages. The client connects to the
+server and waits for the server to state it is ready. After the server send its ready status confirmation, the client sends commands and the server performs the commandrelated actions and sends responses with action status messages to the client.
+Specific commands are defined by IMAP for searching for messages, reading
+messages or part of them, addressing an e-mail by attributes (e.g., from source),
+creating and managing multiple mailboxes, etc.
+A summary of IMAP and POP3 features are described in a comparative Table 7.1.
+www.it-ebooks.info
+110 7 Support for Communication-Based Services
+7.3.1 SMTP Java Example
+This section illustrates via Java examples how e-mail messages can be sent to the email server via SMTP. There are two distinct methods. The first approach uses basic
+socket communication, but it is more complex and requires extensive knowledge
+of the SMTP protocol. The second method uses the JavaMail API, and it is less
+complex, as the API hides the protocol-related implementation complexity.
+7.3.1.1 Socket-based SMTP Example
+In order to build the socket-based SMTP Java example, several major steps need to
+be followed. The steps are listed below.
+• Step 1—Import the required packages:
+import java.io.*;
+import java.net.*;
+import java.util.*;
+import java.text.*;
+• Step 2—Prepare server details and SMTP fields:
+/*set the server details*/
+private String host = new String("136.206.35.46");
+private int port = 25;
+/*set email message parameters*/
+String from = new String("jack@eeng.dcu.ie");
+String to = new String("jane@eeng.dcu.ie");
+String cc = new String("john@eeng.dcu.ie");
+String bcc = new String("jill@eeng.dcu.ie");
+String subj = new String("SMTP email");
+String body = new String("Message body!");
+• Step 3—Establish socket connection with the server:
+/*create and open the socket*/
+sock = new Socket(host, port);
+/*create the I/O data streams*/
+os = new DataOutputStream(sock.getOutputStream());
+is = new DataInputStream(sock.getInputStream());
+if(sock != null && os != null && is != null)
+{
+/*Connection successful.*/
+System.out.println("Connected OK!");
+/*Send email.*/
+www.it-ebooks.info
+7.3 Electronic Mail Services 111
+[...]
+}
+else
+{
+/*Unsuccessful connection.*/
+System.out.println("Connection error!");
+}
+• Step 4—Communicate with the server using SMTP commands:
+/*communicate with the server using SMTP commands*/
+os.writeBytes("HELO\r\n");
+/*set email message details*/
+/*sender address*/
+os.writeBytes("MAIL From: <" + from + ">\r\n");
+/*destination email address*/
+os.writeBytes("RCPT To: <" + to + ">\r\n");
+/*CC email address*/
+os.writeBytes("RCPT Cc: <" + cc + ">\r\n");
+/*BCC email address*/
+os.writeBytes("RCPT Bcc: <" + bcc + ">\r\n");
+/*email message and header*/
+os.writeBytes("DATA\r\n");
+os.writeBytes("X-Mailer: Via Java\r\n");
+os.writeBytes("DATE:"+dFormat.format(dDate)+"\r\n");
+os.writeBytes("From: source <" + from + ">\r\n");
+os.writeBytes("To: destination <" + to + ">\r\n");
+os.writeBytes("Cc: CC dest. <" + cc + ">\r\n");
+/*message content*/
+os.writeBytes("Subject: "+ subj +"\r\n");
+os.writeBytes(body + " \r\n");
+/*indicates the end of message data*/
+os.writeBytes("\r\n.\r\n");
+• Step 5—Send the message:
+/*start the SMTP update phase*/
+os.writeBytes("QUIT\r\n");
+www.it-ebooks.info
+112 7 Support for Communication-Based Services
+• Step 6—Check for server’s answer:
+String rcv;
+while((rcv = is.readLine()) != null) {
+if(rcv.indexOf("Ok") != -1)
+{
+/*Server success confirmation*/
+[...]
+}
+}
+• Step 7—Deal with all exceptions:
+try
+{
+[...]
+}
+catch()
+{
+[...]
+}
+Next the complete SMTP example using sockets is presented.
+import java.io.*;
+import java.net.*;
+import java.util.*;
+import java.text.*; // Used for date formatting.
+/*class implementing the email service*/
+public class SockSMTPeMail
+{
+/*socket used for communication with the server*/
+private Socket sock = null;
+/*data streams for reading/writing to/from the
+socket*/
+private DataOutputStream os = null;
+private DataInputStream is = null;
+/*server details*/
+private String host = null;
+private int port = 25;
+/*email message parameters*/
+String from = null;
+Code Listing 7.2 SockSMTPeMail.java
+www.it-ebooks.info
+7.3 Electronic Mail Services 113
+String to = null;
+String cc = null;
+String bcc = null;
+String subj = null;
+String body = null;
+/*args are the command line arguments*/
+public static void main(String[] args)
+{
+SockSMTPeMail mail = new SockSMTPeMail();
+mail.SendMail();
+}
+public void SendMail()
+{
+/*set the server details*/
+String host = new String("136.206.35.46");
+int port = 25;
+/*set email message parameters*/
+from = new String("jack@eeng.dcu.ie");
+to = new String("jane@eeng.dcu.ie");
+cc = new String("john@eeng.dcu.ie");
+bcc = new String("jill@eeng.dcu.ie");
+subj = new String("SMTP email");
+body = new String("Message body!");
+/*get and format the current date and time*/
+Date dDate = new Date();
+DateFormat dFormat;
+dFormat = DateFormat.getDateInstance(
+DateFormat.FULL, Locale.US);
+try
+{
+/*create and open the socket*/
+sock = new Socket(host, port);
+/*create the I/O data streams*/
+os = new DataOutputStream(sock.getOutputStream());
+is = new DataInputStream(sock.getInputStream());
+if(sock != null && os != null && is != null)
+Code Listing 7.2 (Continued)
+www.it-ebooks.info
+114 7 Support for Communication-Based Services
+{
+/*Connection successful.*/
+System.out.println("Connected OK!");
+try
+{
+os.writeBytes("HELO\r\n");
+/*set email message details*/
+/*sender address*/
+os.writeBytes("MAIL From: <"
++ from + ">\r\n");
+/*destination email address*/
+os.writeBytes("RCPT To: <" + to + ">\r\n");
+/*CC email address*/
+os.writeBytes("RCPT Cc: <" + cc + ">\r\n");
+/*BCC email address*/
+os.writeBytes("RCPT Bcc: <" + bcc + ">\r\n");
+/*email message and header*/
+os.writeBytes("DATA\r\n");
+os.writeBytes("X-Mailer: Via Java\r\n");
+os.writeBytes("DATE: " +
+dFormat.format(dDate) + "\r\n");
+os.writeBytes("From: source <"
++ from + ">\r\n");
+os.writeBytes("To: destination <"
++ to + ">\r\n");
+os.writeBytes("Cc: CC dest. <"
++ cc + ">\r\n");
+/*message content*/
+os.writeBytes("Subject: "+ subj +"\r\n");
+os.writeBytes(body + " \r\n");
+/*specify the end of message data*/
+os.writeBytes("\r\n.\r\n");
+/*sends the message by issuing the QUIT
+command*/
+os.writeBytes("QUIT\r\n");
+Code Listing 7.2 (Continued)
+www.it-ebooks.info
+7.3 Electronic Mail Services 115
+/*check the server reply against OK*/
+String rcv;
+while((rcv = is.readLine()) != null)
+{
+System.out.println(rcv);
+if(rcv.indexOf("Ok") != -1)
+/*Server success confirmation*/
+break;
+}
+}
+catch(Exception e)
+{
+System.out.println("Communication error.");
+}
+}
+else
+{
+/*Unsuccessful connection.*/
+System.out.println("Connection error!");
+}
+}
+catch(Exception e)
+{
+System.out.println("Host " + host + "unknown");
+}
+}
+}
+Code Listing 7.2 (Continued)
+7.3.1.2 JavaMail API-Based SMTP example
+The second approach to building SMTP Java applications is to use the JavaMail
+API. The following major steps need to be considered.
+• Step 1—Download JavaMail package and unzip it.
+http://www.oracle.com/technetwork/java/javamail/
+index.html
+• Step 2—Update your CLASSPATH to include:
+mail.jar; mailapi.jar;
+pop3.jar; smtp.jar; activation.jar
+• Step 3—Import the required packages:
+import javax.mail.*;
+www.it-ebooks.info
+116 7 Support for Communication-Based Services
+import javax.mail.internet.*;
+import java.util.*;
+• Step 4—Prepare server details and SMTP fields:
+/*set the server details*/
+srv = new String("136.206.35.46");
+/*set email message parameters*/
+String from = new String("jack@eeng.dcu.ie");
+String to = new String("jane@eeng.dcu.ie");
+String cc = new String("john@eeng.dcu.ie");
+String bcc = new String("jill@eeng.dcu.ie");
+String subj = new String("SMTP email");
+String body = new String("Message body!");
+• Step 5—Get the communication with the server session:
+/*get the default comms. session,
+*or start a new one*/
+Properties props = System.getProperties();
+props.put("JavaMailSMTPeMail", srv);
+Session session =
+Session.getDefaultInstance(props, null);
+• Step 6—Prepare the message:
+/*create a new message*/
+Message msg = new MimeMessage(session);
+/*set the message fields*/
+msg.setFrom(new InternetAddress(from));
+msg.setRecipients(Message.RecipientType.TO,
+InternetAddress.parse(to, false));
+msg.setRecipients(Message.RecipientType.CC
+InternetAddress.parse(cc, false));
+msg.setRecipients(Message.RecipientType.BCC
+InternetAddress.parse(bcc, false));
+/*Set the message subject and body*/
+msg.setSubject(subj);
+msg.setText(body);
+• Step 7—Send message to the server:
+/*send the message*/
+Transport.send(msg);
+System.out.println("Message sent OK.");
+www.it-ebooks.info
+7.3 Electronic Mail Services 117
+• Step 8—Deal with all exceptions:
+try
+{
+[...]
+}
+catch()
+{
+[...]
+}
+A complete simple SMTP example using JavaMail API built based on the examples provided in the JavaMail documentation [24] is presented next. The JavaMail
+API documentation also includes examples which make use of the extended SMTP
+features such as authentication.
+import javax.mail.*;
+import javax.mail.internet.*;
+import java.util.*;
+public class JavaMailSMTPeMail
+{
+/*server details*/
+private String srv = null;
+/*email message parameters*/
+String from = null;
+String to = null;
+String cc = null;
+String bcc = null;
+String subj = null;
+String body = null;
+/*Main method to send a message to the SMTP server*/
+public static void main(String[] args)
+{
+JavaMailSMTPeMail mail = new JavaMailSMTPeMail();
+mail.SendMail();
+}
+public void SendMail()
+{
+/*set the server details*/
+srv = new String("136.206.35.46");
+Code Listing 7.3 JavaMailSMTPeMail.java
+www.it-ebooks.info
+118 7 Support for Communication-Based Services
+/*set email message parameters*/
+from = new String("jack@eeng.dcu.ie");
+to = new String("jane@eeng.dcu.ie");
+cc = new String("john@eeng.dcu.ie");
+bcc = new String("jill@eeng.dcu.ie");
+subj = new String("SMTP email");
+body = new String("Message body!");
+try
+{
+/*get the default comms.
+*session, or start a new one*/
+Properties props = System.getProperties();
+props.put("JavaMailSMTPeMail", srv);
+Session session =
+Session.getDefaultInstance(props, null);
+/*create a new message*/
+Message msg = new MimeMessage(session);
+/*set the message fields*/
+msg.setFrom(new InternetAddress(from));
+msg.setRecipients(Message.RecipientType.TO,
+InternetAddress.parse(to, false));
+msg.setRecipients(Message.RecipientType.CC,
+InternetAddress.parse(cc, false));
+msg.setRecipients(Message.RecipientType.BCC,
+InternetAddress.parse(bcc, false));
+/*Set the message subject and body*/
+msg.setSubject(subj);
+msg.setText(body);
+/*set other header information*/
+msg.setSentDate(new Date());
+/*send the message*/
+Transport.send(msg);
+System.out.println("Message sent OK.");
+}
+catch (Exception ex)
+Code Listing 7.3 (Continued)
+www.it-ebooks.info
+7.3 Electronic Mail Services 119
+{
+ex.printStackTrace();
+}
+System.exit(0);
+}
+}
+Code Listing 7.3 (Continued)
+7.3.2 POP3 Java Example
+This section provides a Java example to illustrate how e-mail messages can be retrieved from the e-mail server via POP3. This example makes use of the JavaMail
+API which hides the POP3-related implementation aspects.
+• Step 1—Download JavaMail package and unzip it.
+http://www.oracle.com/technetwork/java/javamail/
+index.html
+• Step 2—Update your CLASSPATH to include:
+mail.jar; mailapi.jar; pop3.jar;
+smtp.jar; activation.jar
+• Step 3—Import the required packages:
+import javax.mail.*;
+import javax.mail.internet.*;
+import java.util.*;
+import java.io.*;
+• Step 4—Prepare parameters for server authentication:
+/*set server details*/
+String srv = new String("136.206.35.46");
+String user = new String("john");
+String pass = new String("Secret@19_02_13");
+• Step 5—Get the session and connect to the server:
+/*get the default session*/
+Properties props = System.getProperties();
+Session session = null;
+session = Session.getDefaultInstance(props, null);
+/*get a POP3 message store, and connect to it*/
+store = session.getStore("pop3");
+store.connect(srv, user, pass);
+www.it-ebooks.info
+120 7 Support for Communication-Based Services
+• Step 6—Open Inbox folder and access all e-mails:
+/*get the INBOX*/
+folder = folder.getFolder("INBOX");
+if (folder == null)
+throw new Exception("No POP3 INBOX");
+/*open the folder (read only)*/
+folder.open(Folder.READ_ONLY);
+/*get the messages and print them*/
+Message[] msgs = folder.getMessages();
+for (int i = 0; i < msgs.length; i++)
+printEmail(msgs[i]);
+• Step 7—Print an e-mail message:
+/*get header information*/
+String from = null;
+from = ((InternetAddress)msg.getFrom()[0])
+.getPersonal();
+if (from == null)
+from=((InternetAddress)msg.getFrom()[0])
+.getAddress();
+/*print sender details*/
+System.out.println("FROM: "+from);
+/*get and print the subject*/
+String subj = msg.getSubject();
+System.out.println("SUBJECT: "+subject);
+/*get the message itself*/
+Part msgPart = msg;
+Object content = msgPart.getContent();
+/*or its first body part
+*if it is a multipart message*/
+if (content instanceof Multipart)
+{
+msgPart = ((Multipart)content).getBodyPart(0);
+System.out.println("[ Multipart Message ]");
+}
+/*get the content type*/
+String ct = msgPart.getContentType();
+/*if the content is plain text, print it*/
+www.it-ebooks.info
+7.3 Electronic Mail Services 121
+System.out.println("CONTENT:" + ct);
+if (ct.startsWith("text/plain") ||
+ct.startsWith("text/html"))
+{
+InputStream is = msgPart.getInputStream();
+BufferedReader br = null;
+br = new BufferedReader(new InputStreamReader(is));
+String line = br.readLine();
+while (line != null)
+{
+System.out.println(line);
+line = br.readLine();
+}
+}
+System.out.println("");
+• Step 8—Deal with all exceptions:
+try
+{
+[...]
+}
+catch()
+{
+[...]
+}
+A complete POP3 example using JavaMail API built based on the examples provided in the JavaMail documentation [24] is presented next.
+import javax.mail.*;
+import javax.mail.internet.*;
+import java.util.*;
+import java.io.*;
+public class JavaMailPOP3eMail
+{
+/*store server details*/
+String srv = null;
+String user = null;
+String pass = null;
+Code Listing 7.4 JavaMailPOP3eMail.java
+www.it-ebooks.info
+122 7 Support for Communication-Based Services
+public static void main(String[] args)
+{
+JavaMailPOP3eMail mail = new JavaMailPOP3eMail();
+mail.SendMail();
+}
+public void SendMail()
+{
+/*set server details*/
+srv = new String("136.206.35.46");
+user = new String("john");
+pass = new String("Secret@19_02_13");
+/*save store and folder details*/
+Store store = null;
+Folder folder = null;
+try
+{
+/*get the default session*/
+Properties props = System.getProperties();
+Session session = null;
+session = Session.getDefaultInstance(props, null);
+/*get a POP3 message store, and connect to it*/
+store = session.getStore("pop3");
+store.connect(srv, user, pass);
+/*get the default folder*/
+folder = store.getDefaultFolder();
+if (folder == null)
+throw new Exception("No default folder");
+/*get the INBOX*/
+folder = folder.getFolder("INBOX");
+if (folder == null)
+throw new Exception("No POP3 INBOX");
+/*open the folder (read only)*/
+folder.open(Folder.READ_ONLY);
+/*get the messages and print them*/
+Message[] msgs = folder.getMessages();
+Code Listing 7.4 (Continued)
+www.it-ebooks.info
+7.3 Electronic Mail Services 123
+for (int i = 0; i < msgs.length; i++)
+{
+printEmail(msgs[i]);
+}
+}
+catch (Exception ex)
+{
+ex.printStackTrace();
+}
+finally
+{
+/*close session*/
+try
+{
+if (folder != null)
+folder.close(false);
+if (store != null)
+store.close();
+}
+catch (Exception ex2)
+{
+ex2.printStackTrace();
+}
+}
+}
+/*print email*/
+public static void printEmail(Message msg)
+{
+try
+{
+/*get header information*/
+String from = null;
+from = ((InternetAddress)msg.getFrom()[0])
+.getPersonal();
+if (from == null)
+from=((InternetAddress)msg.getFrom()[0])
+.getAddress();
+/*print sender details*/
+System.out.println("FROM: "+from);
+/*get and print the subject*/
+String subj = msg.getSubject();
+Code Listing 7.4 (Continued)
+www.it-ebooks.info
+124 7 Support for Communication-Based Services
+System.out.println("SUBJECT: "+subj);
+/*get the message itself*/
+Part msgPart = msg;
+Object content = msgPart.getContent();
+/*or its first body part
+*if it is a multipart message*/
+if (content instanceof Multipart)
+{
+msgPart = ((Multipart)content).getBodyPart(0);
+System.out.println("[ Multipart Message ]");
+}
+/*get the content type*/
+String ct = msgPart.getContentType();
+/*if the content is plain text, print it*/
+System.out.println("CONTENT:" + ct);
+if (ct.startsWith("text/plain")
+|| ct.startsWith("text/html"))
+{
+InputStream is = msgPart.getInputStream();
+BufferedReader br = null;
+br = new BufferedReader(new
+InputStreamReader(is));
+String line = br.readLine();
+while (line != null)
+{
+System.out.println(line);
+line = br.readLine();
+}
+}
+System.out.println("");
+}
+catch (Exception ex)
+{
+ex.printStackTrace();
+}
+}
+}
+Code Listing 7.4 (Continued)
+www.it-ebooks.info
+7.4 File Transfer Protocol Service 125
+Figure 7.5 FTP session
+7.4 File Transfer Protocol Service
+File transfers account for both a high number of flows and huge amount of data
+transferred over the current networks. They involve clients transferring file content
+in reliable and efficient manner to and from a remote server.
+These file transfers make use of the File Transfer Protocol (FTP) which was
+developed in 1985 and is still used today. The protocol has been first standardized in
+RFC 959 [8], and then various extensions have been proposed to enhance flexibility
+and security (RFC 1579, RFC 2228) [9, 10].
+FTP works on top of TCP and in general uses port 21; however, in some situations
+the server administrator may choose to use different ports. FTP involves a client
+connecting to the server and sending commands during a communication session.
+The server responds with actions and command status messages. In general, each
+such session involves at least one file transfer.
+The basic principle of file transfers using FTP is outlined in Fig. 7.5.
+Theoretically, FTP involves two connections: for control and data. FTP commands and replies are exchanged via the control connection, while data is exchanged
+over the data connection. There is a requirement for the control connection to be
+working when data is transferred over its dedicated connection. In practice, a single
+connection is used for both data and control information exchange.
+The FTP commands belong to one of the following three categories.
+• Access control commands include:
+– USER—indicates the user;
+– PASS—indicates the password;
+– CWD—changes directory;
+– CDUP—changes directory to parent;
+– QUIT—logouts.
+• Transfer parameter commands include:
+– PORT—publishes local data port;
+www.it-ebooks.info
+126 7 Support for Communication-Based Services
+– PASV—makes server passive (listen);
+– TYPE—indicates data representation (A-ASCII, E-EBCDIC, I-Image, LLocal);
+– MODE—indicates transfer mode (S-Stream, B-Block, C-Compressed);
+– STRU—sets file structure (F-FILE, R-RECORD, P-PAGE).
+• Service commands include:
+– RETR—retrieves file;
+– STOR—sends and stores the file remotely;
+– APPE—sends file and appends;
+– DELE—deletes the file;
+– MKD—makes a new directory;
+– RMD—removes a directory;
+– PWD—prints working directory;
+– LIST—lists files.
+Every command must generate some action and at least one reply from the server.
+This enables the synchronization of requests sent by clients and actions performed
+by the server and also allows the clients to know the server status. In general, the
+reply is a single line; however, multiple lines are also accepted. The reply must
+contain a three digit status code which enables machines to assess the server status
+and a text message which describes the server status in human language.
+There are several issues involved when using FTP for file transfers. Security is an
+important issue for many companies that have installed firewalls. Firewalls prevent
+unauthorized users from getting access to the networks. However, firewalls may also
+inadvertently prevent valid users from accessing some resources, including files.
+When FTP is involved, the network administrators must design rules for classes of
+FTP connections which may be a costly and error prone process.
+Another issue is standardization. There are many FTP client applications with
+different interpretations of the FTP protocol. Consequently, FTP server administrators must know how to support all of these different client application types.
+An alternative to classic FTP is a Web-based file transfer. A Web-based file transfer client runs within the Web browser. There is no need for any software to install,
+license to purchase or software to maintain. Additionally, there is no need to set-up
+firewall rules for each user class.
+7.4.1 Simple FTP Java Client Example
+A Java FTP client can be implemented in three ways.
+The first approach requires the implementation of an own FTPClient class. This
+solution can use standard sockets and FTP commands to interact and exchange data
+files with the file server. The second approach is to find an existing implementation
+of an FTPClient class and make use of it in order to perform the file transfer. The
+third possibility is to employ a Web-based FTP client.
+www.it-ebooks.info
+7.4 File Transfer Protocol Service 127
+The simple FTP Java client file transfer example presented next uses the second
+approach and makes use of the FTPClient implementation available as part of the
+Apache Commons Net API [25]. The Apache Commons Net API-based FTP client
+file transfer application implementation involves the following steps.
+• Step 1—Download Apache Commons Net API version 3.2.
+http://commons.apache.org/net/download_net.cgi
+• Step 2—Update your CLASSPATH to include:
+commons-net-3.2.jar
+• Step 3—Import the required packages:
+import java.io.*;
+import org.apache.commons.net.ftp.FTP;
+import org.apache.commons.net.ftp.FTPClient;
+• Step 4—Prepare parameters for server authentication:
+/*sets server parameters*/
+String srv = new String("136.206.35.46");
+int port = 21;
+String user = new String("john");
+String pass = new String("Secret@19_02_13");
+• Step 5—Create the FTPClient object:
+FtpClient client = new FtpClient(host);
+• Step 6—Connect, login to the FTP server, and set transfer mode:
+/*connects to FTP server*/
+ftpClient.connect(srv, port);
+/*authenticates on the server*/
+ftpClient.login(user, pass);
+/*sets connection to client-server mode*/
+ftpClient.enterLocalPassiveMode();
+/*sets transferred file type*/
+ftpClient.setFileType(FTP.BINARY_FILE_TYPE);
+• Step 7—Set local and remote files and perform transfer:
+/*remote file*/
+String rf = "/remotefolder/remotefile.txt";
+/*local file*/
+File lf = new File("C:/localfolder/localfile.txt");
+/*enables data writing*/
+OutputStream os =
+www.it-ebooks.info
+128 7 Support for Communication-Based Services
+new BufferedOutputStream(new FileOutputStream(lf));
+/*gets remote file content*/
+if(ftpClient.retrieveFile(rf, os))
+System.out.println("File transfer success.");
+• Step 8—Close output stream, perform server logout and disconnect:
+/*closes output stream*/
+os.close();
+/*logouts and disconnects*/
+if (ftpClient.isConnected())
+{
+ftpClient.logout();
+ftpClient.disconnect();
+}
+• Step 9—Deal with all exceptions:
+try
+{
+[...]
+}
+catch()
+{
+[...]
+}
+The complete Apache Commons Net API-based FTP download client Java example application is included next. An alternative FTP download solution which
+makes use of the Apache Commons Net API FTPClient’s InputStream retrieveFileStream(String remote) method is presented in [26].
+import java.io.*;
+import org.apache.commons.net.ftp.FTP;
+import org.apache.commons.net.ftp.FTPClient;
+public class ApacheJavaFTP
+{
+public static void main(String[] args)
+{
+/*sets server parameters*/
+String srv = new String("136.206.35.46");
+int port = 21;
+Code Listing 7.5 ApacheJavaFTP.java
+www.it-ebooks.info
+7.4 File Transfer Protocol Service 129
+String user = new String("john");
+String pass = new String("Secret@19_02_13");
+/*creates FTPClient object*/
+FTPClient ftpClient = new FTPClient();
+try
+{
+/*connects to FTP server*/
+ftpClient.connect(srv, port);
+/*authenticates on the server*/
+ftpClient.login(user, pass);
+/*sets connection to client-server mode*/
+ftpClient.enterLocalPassiveMode();
+/*sets transferred file type*/
+ftpClient.setFileType(FTP.BINARY_FILE_TYPE);
+/*remote file*/
+String rf = "/remotefolder/remotefile.txt";
+/*local file*/
+File lf =
+new File("C:/localfolder/localfile.txt");
+/*enables data writing*/
+OutputStream os =
+new BufferedOutputStream(new
+FileOutputStream(lf));
+/*gets remote file content*/
+if(ftpClient.retrieveFile(rf, os))
+System.out.println("File transfer success.");
+/*closes output stream*/
+os.close();
+}
+catch (IOException ex)
+{
+System.out.println("Error: " + ex.getMessage());
+ex.printStackTrace();
+}
+finally
+{
+try
+Code Listing 7.5 (Continued)
+www.it-ebooks.info
+130 7 Support for Communication-Based Services
+{
+/*logouts and disconnects*/
+if (ftpClient.isConnected())
+{
+ftpClient.logout();
+ftpClient.disconnect();
+}
+}
+catch (IOException ex)
+{
+ex.printStackTrace();
+}
+}
+}
+}
+Code Listing 7.5 (Continued)
+7.5 Web Content Transfer Service
+Web content transfers account for most data exchange over the Internet. They involve communications between Web clients (browsers) and Web servers as illustrated in Fig. 7.6.
+These communications are performed based on the Hypertext Transfer Protocol
+(HTTP), whose version 1.0 was standardized as RFC 1945 [27] and version 1.1 was
+standardized as RFC 2616 [11]. HTTP works in general on top of TCP. The default
+port number is 80, but other ports can also be used. Communications are performed
+in sessions. During these sessions, clients make requests to severs for Web content
+and the servers respond performing Web content transfers to the requesting clients.
+The servers also respond with status messages for client information purpose. In
+general, each session involves at least one client–server request–response and at
+least one Web content transfer.
+In terms of HTTP connections, there may be one (HTTP v.1.0) or multiple simultaneous connections (HTTP v.1.1) between each client–server pair, approaches
+which mostly differ in terms of efficiency. When HTTP v.1.0 is employed, the HTTP
+requests and responses are exchanged sequentially. For each Web item to be transferred, a single TCP connection is established, an HTTP request is sent, an HTTP
+response is received, and then TCP connection is released. In HTTP v.1.1, persistent connections are used, and one or more TCP connections are established between client and server. HTTP requests are sent and HTTP responses are received
+over all connections. Pipelining is sometimes used (sending multiple requests before responses are received). Figure 7.7 illustrates the HTTP-based Web document
+delivery process.
+www.it-ebooks.info
+7.5 Web Content Transfer Service 131
+Figure 7.6 World Wide Web document delivery process
+Figure 7.7 Web document delivery process using HTTP
+As already mentioned, the HTTP-based client–server interaction is performed
+using a series of requests–responses. Each request consists of one or more lines of
+text (ASCII). The first line is the Request-line and includes:
+• Name of the HTTP method;
+• Universal Resource Identifier (URI) of the Web resource;
+• HTTP version.
+The HTTP method names are case sensitive. Method-related Headers follow the
+Request-line. Depending on the method, Content will follow after a blank line or
+not.
+Next the HTTP methods are presented, indicating their names and a brief description.
+• GET—request to retrieve a Web page;
+• HEAD—request to read a Web page’s header;
+• PUT—request to store a Web page;
+• POST—append to a Web page;
+• DELETE—remove the Web page;
+• TRACE—echo incoming request;
+• CONNECT—reserved for future use;
+• OPTIONS—query certain options.
+www.it-ebooks.info
+132 7 Support for Communication-Based Services
+Figure 7.8 HTTP request
+and response structure
+The location of Web resources are indicated using URIs. URIs were defined in
+RFC 2396 [28] and are either relative, listing the resource relative path, or absolute,
+indicating the protocol, host, port, and path.
+Next are two examples of valid HTTP requests.
+GET http://www.dcu.ie:80/index.html HTTP/1.1
+GET /index.html HTTP/1.1
+Figure 7.8 shows the structure of both HTTP request and response.
+Each response consists of one or more lines of text (ASCII). The first line is the
+Status-line and includes:
+• HTTP version;
+• A three digit status code;
+• A human readable status message.
+Response-related Headers follow the Status-line and, depending on the response
+type, Content will be present after a blank line or not.
+The status codes are determined by the server response following client request.
+The first status code digit divides responses in five categories:
+• 1—Information;
+• 2—Success;
+• 3—Redirection;
+• 4—Client error (e.g., invalid request);
+• 5—Server error.
+The second digit indicates the type of error that has occurred, if any (e.g., file system,
+command syntax error). The third digit further qualifies the error.
+There may be zero or more HTTP headers after each request or response. Each
+header consists of a single line of the following format:
+• Attribute name
+• “:”
+• Space
+• Attribute value
+Both attribute name and value are text-based.
+Request headers give information to the server about the client in terms of client
+type, what content is accepted, who makes the request, etc. Each header line ends
+with a CRLF (\r \n).
+www.it-ebooks.info
+7.5 Web Content Transfer Service 133
+Table 7.2 HTTP header structure
+Message header Type Content
+User-agent Request Info about browser and platform
+Accept Request Type of pages the client can handle
+Host Request Server’s DNS name
+Authorization Request List of client’s credentials
+Cookie Request Send a previously set cookie
+Date Request–response Date and time message was sent
+Server Response Information about server
+Content-length Response Page length in bytes
+Content-type Response Page’s MIMO type
+Set-Cookie Response Sets a new cookie
+Response headers provide information to the client about the returned data in
+terms of document type, size, encoding, last modified time, etc. Response header
+lines also end with a CRLF (\r \n).
+Table 7.2 presents the most important HTTP message headers, their meaning,
+and whether or not they are used as part of the request and/or response.
+7.5.1 HTTP Java Client Example
+Next the major steps to follow when designing a HTTP-based Web content transfer
+Java application are presented.
+• Step 1—Import required packages:
+import java.io.*;
+import java.net.*;
+• Step 2—Set path of file to transfer:
+String path =
+new String("http://www.eeng.dcu.ie/index.html");
+• Step 3—From path create the URL object:
+URL url = new URL(path);
+• Step 4—Open an input stream from the url:
+is = new DataInputStream(new
+BufferedInputStream(url.openStream()));
+www.it-ebooks.info
+134 7 Support for Communication-Based Services
+• Step 5—Read data from the stream line by line and print it:
+String s;
+while ((s = is.readLine()) != null)
+System.out.println(s);
+• Step 6—Close the connection:
+is.close();
+• Step 7—Deal with exceptions:
+try
+{
+[...]
+}
+catch()
+{
+[...]
+}
+The complete HTTP client Java example to retrieve Web content given its location at the server is presented.
+import java.io.*;
+import java.net.*;
+/*HTTP client implementation*/
+public class JavaHTTPClient
+{
+/*main method invoked when the application starts*/
+public static void main (String[] args)
+{
+/*Process input parameters*/
+String path =
+new String("http://www.eeng.dcu.ie/index.html");
+DataInputStream is = null;
+try
+{
+/*Create URL object*/
+URL url = new URL(path);
+/*Open an input stream from the url*/
+Code Listing 7.6 JavaHTTPClient.java
+www.it-ebooks.info
+7.6 Java Database Connectivity Services 135
+is = new DataInputStream(new
+BufferedInputStream(url.openStream()));
+/*Reads line by line and prints them on the
+screen*/
+String s;
+while ((s = is.readLine()) != null)
+{
+System.out.println(s);
+}
+}
+catch (Exception e)
+{
+System.out.println("An exception occurred");
+e.printStackTrace();
+System.exit(1);
+}
+finally
+{
+/*Close the input stream*/
+try
+{
+is.close();
+}
+catch (IOException ioe)
+{
+System.out.println("IOException occured");
+ioe.printStackTrace();
+System.exit(1);
+}
+}
+}
+}
+Code Listing 7.6 (Continued)
+7.6 Java Database Connectivity Services
+Database management systems are a very important part of any information system.
+Databases are the most popular approach to storing data in an efficient and easy
+to access way. As a consequence, many network applications developed lately involve a database for data storage. In this context, Java software development enables
+support for database communication.
+www.it-ebooks.info
+136 7 Support for Communication-Based Services
+Figure 7.9 JDBC
+architecture
+The communication between an application and a database management system occurs in a client–server manner. The user application implements the clientside modules and the database management system is in charge with the server-side
+modules.
+Java Database Connectivity or JDBC, is a Java-based data access technology
+which enables database-independent connectivity between Java applications and a
+wide range of databases.
+JDBC leverages existing database technologies and allows SQL-based database
+access. The process of accessing a database via this method involves establishing
+a connection to a database or tabular data source, sending SQL statements and retrieving and processing the results.
+7.6.1 JDBC Architecture
+JDBC architecture involves the following four blocks as presented in Fig. 7.9: Java
+Application, JDBC API, Database Driver, and Database System. These architectural
+blocks are be described in the context of JDBC database interaction process which
+involves the following steps.
+Java Application calls JDBC library methods to connect and interact with the
+database. JDBC communicates with the Database System via the correct Database
+Driver (according to the database technology employed). The driver used has to
+match the database management system used. For example, if the data is stored in
+a MySQL database server, the MySQL specific driver has to be loaded. There are
+many drivers and database communication solutions including MySQL, Postgres,
+and Oracle.
+The results are transferred from the Database System to the Java Application in
+the inverse way, via the driver and JDBC API.
+Several types of database drivers can be used by applications developers.
+www.it-ebooks.info
+7.6 Java Database Connectivity Services 137
+Direct-to-Database Pure Java Driver allows JDBC calls to be converted directly
+into the protocol used by the database. The advantages of such a driver include good
+performance and no need to install special software on the client side or server.
+Disadvantages involve reduced optimization for server operating system and the
+need for a different driver for each different database.
+Database Middleware Pure Java Driver allows JDBC calls to be converted into a
+middleware-specific protocol which is then converted into database specific protocol
+by a middleware server. Middleware server manages multiple database connectivity.
+This type of driver can be used when multiple databases need to be connected to via
+the same JDBC driver. It is server-based, so there is no need for a JDBC driver on the
+client machine. For performance reasons, the server-side component is optimized
+for the operating system of the server machine. The main disadvantage occurs when
+the middleware must run on different platforms as database-specific code must run
+on the middleware server.
+Native API Partly Java Driver allows JDBC calls to be converted into calls on the
+client API for specific database systems (e.g., Oracle, Informix). Specific drivers
+must be loaded on each client machine. Advantages for using this type of driver
+include flexibility (allows access to almost any database as long as ODBC drivers
+are available), significantly better performance and limited Java feature set. As a
+disadvantage, this solution requires specific client library to be installed.
+JDBC-ODBS Bridge allows JDBC to accesses the database via Microsoft’s
+ODBC drivers. ODBC drivers must be loaded on each client machine in order for
+the database interaction to be performed. Advantages include flexibility, almost any
+database for which ODBC driver is installed can be accessed via this method. Disadvantages are represented by performance overhead and the need to install an ODBC
+driver on the client machine which makes it unsuitable for applets.
+7.6.2 JDBC Database Access
+JDBC database access can be performed by following several steps. Theses steps
+will be detailed with code examples in the following paragraphs.
+• Step 1—Load database driver, by loading the appropriate driver class. The current
+class instantiates the driver class and register it with the JDBC driver manager.
+/*Use Class::forName(String classname)*/
+// Class.forName("sun.jdbc.odbc.JdbcOdbcDriver");
+// Class.forName("connect.microsoft.MicrosoftDriver");
+Class.forName("oracle.jdbc.driver.OracleDriver");
+• Step 2—Establish connection with the database. Create connection URL which
+includes “jdbc”, protocol, host, port number, database name. Host and port
+number are required for remote access. Connect to the database which uses
+DriverManager::getConnection(String URL, String username, String password)
+or DriverManager::getConnection(String URL). Return a reference to an object
+of type Connection and throw SQLException if a database access error occurs.
+www.it-ebooks.info
+138 7 Support for Communication-Based Services
+jdbcodbcURL = "jdbc:odbc:BankDatabase";
+Connection link = getConnection(jdbcodbcURL);
+• Step 3—Create a statement object. Use Connection class’s method createStatement() and catch SQLException id thrown.
+Statement st = link.createStatement();
+• Step 4—Run the query statement.
+/*create query*/
+String query = "SELECT account, balance FROM
+Accounts";
+/*execute query and retrieve the results*/
+ResultSet resultSet = st.executeQuery(query);
+/*throws SQLException*/
+• Step 5—Run the update statement.
+/*Create update statement*/
+/*Uses SQL statements INSERT, UPDATE, DELETE*/
+String ins =
+"INSERT INTO Accounts (1234, "John Doe",
+"02/03/2007")";
+String upd =
+"UPDATE Accounts SET (account=1234,
+name="John Doe")";
+String rem =
+"DELETE FROM Accounts WHERE account=1234";
+/*Execute update*/
+/*Returns an int representing the row count*/
+/*Throws SQLException */
+int result = st.executeUpdate(ins);
+int result = st.executeUpdate(upd);
+int result = st.executeUpdate(rem);
+• Step 6—Process and display the database operation results.
+/*Process returned data*/
+/*Use ResultSet’s methods
+*next() - moves cursor down to the next row
+*previous() - moves cursor up to the previous row
+*XXX getXXX(String colName)
+*returns the value of designated
+*column in current row;
+*XXX can be Byte, String, Int, Date, etc.
+*XXX getXXX(int colNo)
+*returns the value of designated
+www.it-ebooks.info
+7.6 Java Database Connectivity Services 139
+*column in current row;
+*XXX can be Byte, String, Int, Date, etc.
+*Throw SQLException
+*/
+resultSet.next();
+resultSet.getInt("account");
+• Step 7—Close connection.
+/*Close Statement object*/
+/*Use Statement::close()
+*Throws SQLException*/
+st.close();
+/*Close Connection
+*Use Connection::close()
+*Throws SQLException*/
+link.close();
+The complete example of a Java application enabling access a database via JDBC
+is presented next.
+import java.sql.*;
+/*JDBC application implementation*/
+public class JDBCApp {
+/*define connection, statement and result set*/
+static Connection link;
+static Statement statement;
+static ResultSet results;
+/*main method to be invoked
+*when the application starts*/
+public static void main(String[] args)
+{
+System.out.println("Welcome to JDBC program!");
+try {
+/*load the driver*/
+Class.forName("sun.jdbc.odbc.JdbcOdbcDriver");
+/*initiate the connection*/
+link = DriverManager.getConnection
+("jdbc:odbc:BankDatabase","","");
+}
+Code Listing 7.7 JDBCApp.java
+www.it-ebooks.info
+140 7 Support for Communication-Based Services
+catch(ClassNotFoundException e) {
+System.out.println("Error: Unable to load
+driver!");
+System.exit(1);
+}
+catch(SQLException e) {
+System.out.println("Error: Connect to
+database!");
+System.exit(1);
+}
+try {
+/*create statement*/
+statement = link.createStatement();
+/*execute the statement and retrieve the result*/
+results =
+statement.executeQuery("SELECT * FROM Accounts");
+}
+catch(SQLException e) {
+System.out.println("Error: Cannot execute
+query!");
+e.printStackTrace();
+System.exit(1);
+}
+try {
+/*process the results*/
+while (results.next()) {
+System.out.println();
+System.out.println("Account:"
++ results.getInt(1));
+System.out.println("Holder: "
++ results.getString(2));
+System.out.println("Balance: "
++ results.getFloat(3));
+System.out.println("Modified: "
++ results.getDate(4));
+}
+}
+catch(SQLException e) {
+System.out.println("Error: Retrieving data!");
+e.printStackTrace();
+System.exit(1);
+}
+Code Listing 7.7 (Continued)
+www.it-ebooks.info
+7.6 Java Database Connectivity Services 141
+try {
+/*close the statement and connection*/
+statement.close();
+link.close();
+}
+catch(SQLException e) {
+System.out.println("Error: Unable to
+disconnect!");
+e.printStackTrace();
+}
+}
+}
+Code Listing 7.7 (Continued)
+7.6.3 JDBC Transactions
+Most databases require protection against errors that may leave the entire data storage in an inconsistent state. For example, when multiple tables are to be updated as a
+result of an operation, it is important to make sure that either all operations succeed
+or none of them. Unfortunately, data processing, network and database errors may
+occur, and a mechanism should be in place to protect the database consistency.
+A transaction consists of a number of statements that are related logically and
+make sense only if all of them are successfully executed. By default, after each
+database statement is executed, the changes are automatically committed to the
+database (auto-commit is on). As a consequence, the changes are saved on the disk
+and are irreversible.
+Before a transaction that consists of two or more statements is performed, the
+auto-commit feature must be turned off (Connection::setAutoCommit(false)). This
+will prevent the changes to be saved to disk directly. When all the statements are
+executed successfully, the changes should be permanently recorded to the database
+by using a commit operation (Connection::commit());
+All changes from the last call to commit() method are recorded without being
+actually saved on the disk. If an error occurs, the database must be returned to the
+state before transaction started and this is made by using the rollback method (Connection::rollback()). When rollback is performed, all changes from the last call to
+commit() are dropped.
+Connection con =
+DriverManager.getConnection(url, username, passwd);
+/*turn auto-commit off*/
+con.setAutoCommit(false);
+try {
+www.it-ebooks.info
+142 7 Support for Communication-Based Services
+statement.executeUpdate(sqlStatement_1);
+...
+statement.executeUpdate(sqlStatement_N);
+/*at this stages all the changes done
+*by running the above statements are recoded
+*but not saved on the disk*/
+/*commit changes as no error occurred*/
+con.commit();
+}
+catch (Exception e) {
+try{
+/*as an exception was thrown indicating an error*/
+/*and rollback is performed*/
+con.rollback();
+}
+catch (SQLException sqle) {
+/*report problem rolling back*/
+}
+}
+finally {
+try{
+/*close connection*/
+con.close();
+}
+catch (SQLException sqle) {
+/*report problem closing connection*/
+}
+}
+7.6.4 JDBC Metadata
+All the examples presented so far assumed a known database structure. This means
+that the name of the tables as well as the name of the fields of each table and their
+order are known. Hence the statements can be formed and results can be processed
+using table names and columns ids.
+However, often the database structure is unknown, and consequently it is necessary to have this information in order to interact with the database.
+Information about database can be retrieved using DatabaseMetaData’s methods. A reference to a DatabaseMetaData object is returned by Connection::
+getMetaData().
+Among the most important DatabaseMetaData methods are ResultSet getCatalogs(); which gets all the names of catalogs available in this database, ResultSet
+www.it-ebooks.info
+7.6 Java Database Connectivity Services 143
+getTables(String catalog, String schemaPattern, String tableNamePattern, String[]
+types); which retrieves a description of the tables available in the given catalog, and
+boolean isReadOnly(); which checks if the database is read-only.
+Data structure information can be retrieved using ResultSetMetaData’s methods.
+A reference to a ResultSetMetaData object is returned by ResultSet::getMetaData();
+method.
+Among the most important ResultSetMetaData methods are int getColumnCount(); which returns the number of columns in the data-set, String getColumnName(int column-no); which returns the column name given its order number (starting from 1, not 0), int getColumnType(int column-no) which returns the column type
+given its order number (starting from 1, not 0!), String getColumnTypeName(int
+column-no) which returns a string containing the indicated column’s type name and
+boolean isReadOnly(int column-no) which checks if the column is read-only.
+Most often used column type constants (defined in java.sql.Types) are Types.
+NUMERIC, Types.DECIMAL, Types.INTEGER, Types.VARCHAR, Types.DATE,
+Types.REAL, Types.DOUBLE, Types.FLOAT.
+The following example shows how database information can be used in a Java
+application.
+/*create a statement*/
+Statement statement = link.createStatement();
+/*create the query*/
+String select = "SELECT * FROM Table WHERE Field =
+Value";
+/*execute the statement and retrieve the results set*/
+ResultSet results = statement.executeQuery(select);
+/*retrieve the ResultSetMetaData object*/
+ResultSetMetaData metaData = results.getMetaData();
+/*retrieve the number of fields*/
+int noFields = metaData.getColumnCount();
+/*check if results found*/
+boolean found = results.next();
+if (!found)
+System.out.println("Not found!");
+else
+/*for each available column*/
+for (int i = 1; i <= noFields; i++) {
+/*display column name and column type*/
+System.out.println("Field name: "
+www.it-ebooks.info
+144 7 Support for Communication-Based Services
++ metaData.getColumnName(i));
+System.out.println("Field type: "
++ metaData.getColumnTypeName(i));
+/*depending on the column type*/
+/*retrieve entry value by type and display it*/
+switch (metaData.getColumnType(i))
+{
+case Types.INTEGER:
+System.out.println("Val:"+results.getInt(i));
+break;
+case Types.VARCHAR:
+System.out.println("Val:"+results.getString(i));
+break;
+case Types.NUMERIC:
+System.out.println("Val:"+results.getFloat(i));
+break;
+default:
+System.out.println("Val of unknown type");
+}
+}
+/*close database connection*/
+link.close();
+7.7 Multimedia Content Delivery Services
+Multimedia content delivery was usually associated with broadcasting in the traditional TV distribution services. Lately, due to the development and proliferation of
+other multimedia based services such as video-on-demand or video conferencing,
+unicast and multicast content delivery became closely associated with multimedia
+applications.
+Broadcasting has the main advantage of being cost effective in terms of bandwidth. Delivering the same content to multiple users at the same time reduces resource utilization. As the users are more likely to prefer video-on-demand-like services [29], the popularity of broadcasting decreases.
+Unicast has the main advantage of supporting video-on-demand services, as well
+as broadcast services. Another benefit of unicast is that network resources are used
+only when there is a user requiring a certain service [29]. In the context of multimedia delivery to mobile devices, unicast presents the benefit of supporting content
+adaptation for each user separately in order to meet his/her device capabilities as
+well as networking resources.
+Multicast is beneficial especially for group content delivery in applications like
+video conferencing. However, the management of multicast groups is difficult and
+complex.
+www.it-ebooks.info
+7.7 Multimedia Content Delivery Services 145
+Various wireless solutions have been proposed to address multimedia content delivery to mobile users. Three typical categories can be identified: DVB-based solutions which enhance the Digital Video Broadcasting standard for mobile devices
+(hand-held), solution enhancing the third generation cellular networks including
+UMTS with Multimedia Broadcast Multicast Service (MBMS) support, and content
+delivery solutions exploiting the widespread popularity of WLAN (802.11—WiFi).
+7.7.1 Protocols Specific to Real-Time Data Delivery
+The Real-time Transport Protocol (RTP) [30] is used for delivering multimedia data
+over the IP networks. RTP uses transport layer protocols such as UDP, for example, and consequently some people consider RTP as an application layer protocol.
+However, as RTP is used to deliver multimedia content, often specialists state it is
+an upper transport layer protocol.
+Real-time Transport Control Protocol (RTCP) [31] controls data delivery over
+RTP. RTP and RTCP use different port numbers (even and odd). As opposed to RTP
+which delivers the content, RTCP delivers control packets such as throughput, loss,
+jitter, etc. This information is not used by RTP, but it is usable by the application
+directly for bit-rate adaptation or delivery quality assessment. In this context, RTP
+cannot guarantee the Quality of Service (QoS) at all. The quality of delivery is
+maintained by adapting the content bit-rate to the network QoS based on delivery
+performance information provided by RTCP.
+RTCP periodically transmits control packets to all participants in the streaming
+session, using the same distribution mechanism as the data packets. The underlying
+protocol used for transport must provide multiplexing of the data and control packets
+by using separate port numbers with UDP.
+RTCP performs four functions: provides feedback on the quality of content delivery, carries a persistent transport-level identifier for an RTP source (i.e., canonical name), provides rate adaptation for the control packets based on the number of
+participants, and provides minimal session control information such as participant
+identification.
+Real Time Streaming Protocol (RTSP) [32] enables a multimedia client to have
+access to the video remote control features, including play, stop, pause, etc. RTSP
+is often used in conjunction with RTP for delivering multimedia data and enabling
+its control.
+RTSP controls one or many time-synchronized streams of continuous media such
+as audio and video. RTSP does not deliver the continuous streams itself, although
+it supports interleaving of the continuous media stream with the control stream.
+This protocols acts as a virtual “remote control” allowing the user player to provide
+VCR-like control options (i.e., play, pause, stop).
+The set of streams is defined by a presentation description; however, a specific
+format is not defined. RTSP does not use connections; however, the media server
+keeps a session tagged by an identifier. This session is not linked in any way with
+www.it-ebooks.info
+146 7 Support for Communication-Based Services
+Figure 7.10 RTP packet
+format
+a transport level connection such as TCP connections. RTSP sessions are independent of the transport solution used. RTSP requests will be transported over TCP
+connections when reliability is desired or over UDP when reliability is traded for
+speed.
+Figure 7.10 shows the fields of the RTP packet header and the payload as follows.
+The header has a minimum size of 12 bites.
+• V—2 bits, version number;
+• P—1 bit, padding flag;
+• X—1 bit, packet header extension flag;
+• CC—4 bits, contributing source number flag;
+• M—1 bit, special event flag;
+• PT—7 bits, payload type flag;
+• Sequence Number—16 bits, data packet sequence number;
+• Time Stamp—32 bits, time stamp;
+• SSRC—32 bits, synchronization source and synchronization source flag;
+• CSRC LIST—32 bits, contributing source and contributing source flag list. Can
+be up to 15;
+• Payload—Packet payload.
+The following example shows how to use the Java Media Framework (JMF) [33]
+to build an RTP server delivering a local video file.
+/*Import relevant packages*/
+import java.awt.*;
+import java.io.IOException;
+import javax.media.*;
+import javax.media.protocol.*;
+import javax.media.format.*;
+import javax.media.control.TrackControl;
+/*Define media server class*/
+public class MediaServer {
+/*Define relevant member variables*/
+Code Listing 7.8 MediaServer.java
+www.it-ebooks.info
+7.7 Multimedia Content Delivery Services 147
+private MediaLocator locator;
+private String ipAddress;
+private String port;
+private Processor processor = null;
+private DataSink rtpTransmitter = null;
+private DataSource dataOutput = null;
+/*MediaServer constructor providing
+source location, streaming IP and Port*/
+public MediaServer(String mediaSource,
+String ipAddress, String port){
+this.locator = new MediaLocator(mediaSource);
+this.ipAddress = ipAddress;
+this.port = port;
+}
+/*Start the server*/
+public void start() {
+/*Create processor*/
+createProcessor();
+/*Create transmitter*/
+createTransmitter();
+/*Start streaming*/
+processor.start();
+}
+/*Stop the server*/
+public void stop() {
+/*Stop and destroy the processor*/
+processor.stop();
+processor.close();
+processor = null;
+/*Stop and destroy the transmitter*/
+rtpTransmitter.close();
+rtpTransmitter = null;
+}
+/*Create the processor*/
+private void createProcessor() {
+try {
+/*Create data source*/
+DataSource ds =
+Manager.createDataSource(locator);
+Code Listing 7.8 (Continued)
+www.it-ebooks.info
+148 7 Support for Communication-Based Services
+/*Create processor*/
+processor = Manager.createProcessor(ds);
+} catch (NoProcessorException e) {
+e.printStackTrace();
+} catch (NoDataSourceException e) {
+e.printStackTrace();
+} catch (IOException e) {
+e.printStackTrace();
+}
+/*Configure and realize the processor*/
+processor.configure();
+processor.realize();
+/*wait for the processor to initialize*/
+while (processor.getState() < Processor.Configured
+|| processor.getState() < Processor.Realized) {
+try {
+this.wait(1000);
+} catch (InterruptedException e) {
+e.printStackTrace();
+}
+}
+/*Get the media file tracks*/
+TrackControl [] tracks =
+processor.getTrackControls();
+/*Search for a video track*/
+for (int i = 0; i < tracks.length; i++) {
+Format format = tracks[i].getFormat();
+if (tracks[i].isEnabled() &&
+format instanceof VideoFormat) {
+/*Video track found*/
+Dimension size =
+((VideoFormat)format).getSize();
+float frameRate =
+((VideoFormat)format).getFrameRate();
+/*Make the width and height multiples of 8*/
+int w = 0;
+Code Listing 7.8 (Continued)
+www.it-ebooks.info
+7.7 Multimedia Content Delivery Services 149
+if(size.width % 8 == 0){
+w = size.width;
+} else{
+w = (int)(size.width / 8) * 8;
+}
+int h = 0;
+if(size.height % 8 == 0){
+h = size.height;
+}else{
+h = (int)(size.height / 8) * 8;
+}
+VideoFormat videoFormat =
+new VideoFormat(VideoFormat.H263_RTP,
+new Dimension(w, h),
+Format.NOT_SPECIFIED,
+Format.byteArray,frameRate);
+tracks[i].setFormat(videoFormat);
+} else
+tracks[i].setEnabled(false);
+}
+/*Initialize the output content descriptor
+to RAW_RTP*/
+ContentDescriptor cd =
+new ContentDescriptor(ContentDescriptor.RAW_
+RTP);
+processor.setContentDescriptor(cd);
+/*Retrieve the output data source*/
+dataOutput = processor.getDataOutput();
+}
+/*Create the transmitter*/
+private void createTransmitter() {
+try {
+/*Define the streaming URL*/
+String rtpURL =
+"rtp://" + ipAddress + ":" + port + "/video";
+/*Create the transmitter and start streaming*/
+MediaLocator outputLocator =
+new MediaLocator(rtpURL);
+rtpTransmitter =
+Manager.createDataSink(dataOutput,
+outputLocator);
+Code Listing 7.8 (Continued)
+www.it-ebooks.info
+150 7 Support for Communication-Based Services
+rtpTransmitter.open();
+rtpTransmitter.start();
+dataOutput.start();
+} catch (NoDataSinkException e) {
+e.printStackTrace();
+} catch (SecurityException e) {
+e.printStackTrace();
+} catch (IOException e) {
+e.printStackTrace();
+}
+}
+public static void main(String [] args) {
+try {
+MediaServer vt =
+new MediaServer("file:\\video.avi", "localhost",
+"1024");
+vt.start();
+Thread.currentThread().sleep(60000);
+vt.stop();
+} catch (InterruptedException e) {
+e.printStackTrace();
+}
+}
+}
+Code Listing 7.8 (Continued)
+7.7.2 Multimedia Delivery over Cellular Networks
+In cellular networks, multimedia delivery was introduced starting from the 2.5G
+technologies and continuing with the current 3G technologies. The packet-switched
+streaming (PSS) standard developed by the Third Generation Partnership Project
+(3GPP) provides the means of content transportation for streaming and downloading applications. PSS uses various protocols for content delivery and information
+exchange. Content is delivered using RTP over UDP. Other types of media including text and graphics are delivered over HTTP. RTSP is used for control information
+exchange. PSS supports user quality of experience monitoring which permits content adaptation for improving user satisfaction.
+Apart from the transport mechanisms, PSS also specifies a set of media codecs
+including Adaptive Multirate (AMR), H.263 [34], H.264 [35], MPEG-4 Advanced
+Video Codec (AVC) [36], and MPEG-4 [37].
+For further improvement of user perceived quality, PSS also includes an Adaptive
+Streaming feature [38] which is useful for adapting the content to network condition
+www.it-ebooks.info
+7.7 Multimedia Content Delivery Services 151
+variations as well as variations in network characteristics due to handovers between
+systems [29] like GPRS to WCDMA and vice-versa.
+The IP Multimedia Subsystem (IMS) [39] was developed within 3GPP as a service platform to provide multimedia services over 3G networks. IMS uses the Session Initiation Protocol (SIP) for signaling and session control, RTP for media transport and IPv6 at the network layer. The IMS platform is not directly involved in media transport (only in session control) [39], but QoS is maintained by collaboration
+between the IMS platform and the transport network. The Policy Decision Function
+(PDF) is the IMS sub-module which is responsible for QoS negotiation according
+to the application requirements.
+3GPP also proposed the Multimedia Broadcast/Multicast Service (MBMS) for
+UMTS [40]. MBMS delivers multimedia content to a group of users in a point-tomultipoint manner using UMTS MBMS transmission bearer. MBMS is composed
+of two modules, the MBMS bearer service which deals with transmission procedures below the IP layer and the MBMS user service which manages streaming and
+downloading methods and procedures. The streaming methods used by MBMS are
+similar to PSS in terms of transfer protocols (e.g., RTP) and codecs.
+Broadcast and Multicast Services (BCMCS) [41] protocol is similar to MBMS
+but was developed by 3GPP2 for the CDMA2000 protocol family for 3G networks.
+Similar to MBMS, BCMCS provides point-to-multipoint content delivery and guarantees QoS for two way multimedia applications. Content adaptation may be performed using SVC which was also introduced in MPEG-4 standard as FGS (MPEG4 FGS) [42].
+7.7.3 DVB-based Multimedia Delivery
+The Digital Video Broadcasting (DVB) [43] standards offer point-to-multipoint data
+services with high data rates for multimedia (especially TV) content delivery to end
+users. Apart from the satellite versions (DVB-S) [44], DVB also standardized a
+terrestrial wireless data service via DVB-T [5]. Although DVB-T broadcasts multimedia content to static and mobile users, including vehicular receivers, it is not
+optimized for highly mobile hand-held devices. However, the most recent DVB-T2
+[45] is highly efficient and addresses many of the shortcomings of the previouslyproposed DVB-T.
+Consequently, the DVB community has developed DVB-H (hand-held) [6] for
+multimedia content delivery to mobile devices.
+DVB-H specifies the protocol layers below the network layer only, and consequently there was a need for an Internet Protocol (IP) [46] interface for higher transport layers which was defined by the IP-based Data Broadcast (IP Datacast) [7]
+specification which was also introduced.
+IP Datacast specified the protocols for higher layers in concordance with the
+Internet protocol stack. For the transport layer, UDP was chosen with RTP for realtime media broadcasting and File Delivery over Unidirectional Transport (FLUTE)
+[47] for non-real-time data transfer like download-based media delivery.
+www.it-ebooks.info
+152 7 Support for Communication-Based Services
+For media encoding, DVB-H aims for high compatibility between network components and terminals; therefore, MPEG-4/H.264 was chosen for video encoding as
+well as the Microsoft Windows Media 9 based VC-1 codec [48]. For audio MPEG
+4, AAC+ [49] is recommended.
+IP Datacast was developed towards a hybrid interoperability of several types of
+networks in order to benefit from their advantages and balance their disadvantages.
+DVB-H has the advantage of being highly scalable with the number of users
+unlike cellular networks or WLANs which are basically point-to-point and suffer
+from severe QoS drops when congested. On the other hand, DVB-H interactivity is
+quite limited.
+Considering these aspects, using a hybrid solution where the content management layer decides which network to use for delivery of a certain service depending
+on its popularity (the number of users requesting the same service at the same time)
+or its interactivity requirements may improve the overall quality of the service as
+perceived by the user.
+7.7.4 Multimedia Delivery over WLAN
+Wireless LAN is probably the most successful and cost-effective option for multimedia delivery. With encouraging link layer data rates, IEEE 802.11 based WLANs
+popularity is constantly increasing and many flavors have been proposed, addressing different wireless communications aspects including using different frequencies,
+supporting increased bitrates, focusing on mesh networks or on vehicular communications: IEEE 802.11b, IEEE 802.11a, IEEE 802.11g, IEEE 802.11s [4], IEEE
+802.11p, etc.
+Despite all the positive aspects WLANs suffer from the same unpredictability of
+the wireless links as well as from severe QoS drops when the wireless medium gets
+congested with the increase in the number of simultaneous hosts engaged in data
+sessions.
+The IEEE 802.11 standards describe only the physical and MAC layer. There are
+several enhancements proposed for supporting multimedia applications including
+the IEEE 802.11e [1] and IEEE 802.11n [3] which provide QoS support features in
+the MAC layer. There are also various prioritization schemes [2] which allow traffic
+differentiation depending on the type of traffic (priority class).
+WLANs use the Internet protocol stack for higher layers, consequently all the
+multimedia streaming solutions designed for the Internet may be used in scenarios
+including WLANs. Although WLANs are compatible with the IP based network
+paradigm, their particularities especially regarding the error prone and highly dynamic wireless links have to be considered by the higher layers in order to provide
+a high quality multimedia streaming service.
+www.it-ebooks.info
+7.8 Adaptive Multimedia Delivery 153
+7.8 Adaptive Multimedia Delivery
+User satisfaction is crucial for the success of any multimedia-based application.
+Various performance issues arise when multimedia content is delivered over besteffort networks to users with heterogeneous device capabilities and expectations.
+However, network conditions in terms of available bandwidth, packet loss, packet
+delay, and delay jitter have a major impact on the quality of delivered multimedia
+content and its timeliness, ultimately affecting the end-user perceived quality, or as
+it is most recently termed Quality of Experience (QoE).
+In order to avoid the negative impact dynamic network conditions have on the
+multimedia content, measures have to be taken to adapt the streaming process to
+follow and match the current network capacity. If short term variations can be overcome by using buffering techniques [50], for long time-scale network dynamics rate
+adaptation techniques are among the most efficient solutions.
+Several adaptive streaming solutions were proposed at the network and transport
+layer including TFRCP [51], LDA+ [52], and RAP [53]. These solutions present a
+reasonable performance in terms of QoS, but their major drawback is a poor correlation with the actual end-user perceived quality.
+More advanced adaptive streaming techniques from the point of view of maintaining a high level of user perceived quality were developed at the application layer.
+Such a solution with good performance in terms of user perceived quality is LQA
+[54]. Cross-layer methods get closer to the user and try to achieve higher perceptual
+quality of streamed multimedia content. A good survey of these solutions can be
+found in [55].
+The Quality Oriented Adaptation Scheme (QOAS) [56] involves a user perceived
+quality estimation in the feedback-based multimedia adaptation process. Consequently, QOAS shows significant improvements in end-user perceived quality when
+used for streaming multimedia content in both wired and wireless networking environments.
+Diverse solutions were proposed for adaptive multimedia transmissions over
+wireless access networks [57] or wireless ad-hoc networks [58]. Among the proposed solutions are adaptation mechanisms at the level of layers [57] or objects
+[59], fine-granular scalability schemes [60], and perception-based approaches [61].
+However, all these solutions involve content adjustments which affect equally the
+whole area of the video frames, regardless of different user interest in various frame
+regions as research on regions of interest (ROI) has demonstrated [62].
+A cross-layer adaptive multimedia streaming solution was proposed in [63]. Unlike the other solutions discussed above, this one makes distinction between various
+elements of the video content by identifying, classifying, and assigning different
+priorities, and consequently different QoS levels for each element or group of elements. However, this solution does not consider the variation in user attention focus
+during the video sequence.
+An ROI-based adaptive scheme is introduced in [64]. Unlike in the case of
+ROIAS, each macro-block is categorized as ROI or non-ROI based on a saliency
+map computed using luminance contrast, color-double-opponent, texture, skin color,
+and motion vector.
+www.it-ebooks.info
+154 7 Support for Communication-Based Services
+ROI-based adaptation of video content is also discussed in [65]. Although techniques for estimating the ROI within a video frame are presented, the adaptation
+consists in adjusting the frame resolution to match the maximum display resolution.
+A similar approach is presented in [66]. Unlike ROIAS, the proposed solution
+focuses on resolution adaptation and targets specific types of content (i.e., news,
+interviews) where the ROI is predefined at the beginning of the material and then is
+tracked throughout the playback.
+Although ROI is considered in the adaptation process, the above mentioned solutions do not reach the level of generality and performance in terms of smoothness
+and adaptability.
+7.9 Conclusion
+This chapter has presented the major communication-based services, has introduced
+the protocols these services rely on, and has described step-by-step, with the help of
+examples, how applications built on top of these protocols can be developed using
+Java.
+References
+1. IEEE (2005) IEEE standard for local and metropolitan area networks specific requirements—
+Part 11: Wireless LAN medium access control (MAC) and physical layer (PHY) specifications MAC enhancements for QoS
+2. Xiao Y (2005) Performance analysis of priority schemes for IEEE 802.11 and IEEE 802.11e
+wireless LANs. IEEE Trans Wirel Commun 4(4):1506–1515
+3. IEEE (September 2008) IEEE draft standard for local and metropolitan area network-specific
+requirements—Part 11: Wireless LAN medium access control (MAC) and physical layer
+(PHY) specifications mendment 5: enhancements for higher throughput
+4. IEEE (December 2009) IEEE draft standard for information technology—
+telecommunications and information exchange between system—LAN/MAN specific
+requirements—Part 11: Wireless medium access control (MAC) and physical layer (PHY)
+specifications: amendment 10: mesh networking
+5. Ladebusch U, Liss C (2006) Terrestrial DVB (DVB-T): a broadcast technology for stationary
+portable and mobile use. Proc IEEE 94(1):183–193
+6. DVB (November 2004) Transmission system for handheld terminals (DVB-H), ETSI EN
+302304 v1.1.1
+7. Kornfeld M, May G (2007) DVB-H and IP datacast mdash; broadcast to handheld devices.
+IEEE Trans Broadcast 53(1):161–170
+8. Postel J, Reynolds J (October 1985) File transfer protocol. RFC 959 (standard) Updated by
+RFCs 2228, 2640, 2773, 3659, 5797
+9. Bellovin S (1994) Firewall-friendly FTP
+10. Horowitz M, Lunt S (October 1997) FTP security extensions. RFC 2228 (proposed standard)
+11. Fielding R, Gettys J, Mogul J, Frystyk H, Masinter L, Leach P, Berners-Lee T (1999) RFC
+2616—Hypertext transfer protocol (HTTP/1.1). RFC 2616
+12. Postel J (1981) RFC 792—Internet control message protocol (ICMP). RFC 792
+13. Postel J (1981) RFC 791—Internet protocol (IP). RFC 791
+www.it-ebooks.info
+References 155
+14. Oracle: Complex ping with Java NIO
+15. Odulio J (2005) Simple ping with Java NIO. Personal and Technical Journal on Software
+Development. ISSN: 1793-2343
+16. Crocker DH (1982) RFC 822—Standard for ARPA internet text messages. RFC 822
+17. Resnick P (2001) RFC 2822—Internet message format. RFC 2822
+18. Borenstein N (1992) F.N.: RFC 1341—MIME: Mechanisms for specifying and describing
+the format of internet message bodies. RFC 1341
+19. Freed N (1996) B.N.: RFC 2045—multipurpose internet mail extensions (MIME) Part one:
+format of internet message bodies. RFC 2045
+20. Postel J (1982) Rfc 821—simple mail transfer protocol (SMTP). RFC 821
+21. Klensin J (2001) RFC 2821—Simple mail transfer protocol (SMTP). RFC 2821
+22. Myers J (1996) R.M.: RFC 1939—Post-office protocol version 3 (POP3). RFC 1939
+23. Crispin M (1996) RFC 2060—Internet message access protocol (IMAP). RFC 2060
+24. Oracle: Javamail API
+25. Apache: Apache commons net API
+26. http://www.codejava.net (download files from an FTP server)
+27. Berners-Lee T (1996) F.R.F.H.: RFC 1945—Hypertext transfer protocol—HTTP/1.0. RFC
+1945
+28. Berners-Lee T, Fielding R, Masinter L (1998) RFC 2396—Uniform resource identifiers
+(URI): Generic syntax. RFC 2396
+29. Hartung F, Horn U, Huschke J, Kampmann M, Lohmar T, Lundevall M (2007) Delivery of
+broadcast services in 3G networks. IEEE Trans Broadcast 53(1):188–199
+30. Schulzrinne H, Casner S, Frederick R, Jacobson V (2003) RFC 3550 RTP: a transport protocol for real-time applications
+31. HU1TEMA, C (2003) Rfc3605. Real time control protocol (RTCP) attribute in session description protocol (SDP)
+32. Schulzrinne H, Rao A, Lanphier R (1998) RFC2326. Real time streaming protocol. Available
+on http://www.ietf.org/rfc/rfc2326.txt
+33. Gordon R, Talley S (1999) Essential JMF: developer’s Java media players. Prentice Hall,
+New York
+34. ITU-T (February 1998) ITU-T recommendation H.263—Video coding for low bit rate communication
+35. ITU-T (2003) ITU-T recommendation H.264—ISO/IEC 14496-10 AVC—Draft ITU-T recommendation and final draft international standard of joint video specification
+36. ISO (2005) International standard ISO/IEC 14496-10 MPEG-4 AVC
+37. ISO (2004) International standard ISO/IEC 14496-2 MPEG-4 visual
+38. Frojdh P, Horn U, Kampmann M, Nohlgren A, Westerlund M (2006) Adaptive streaming
+within the 3GPP packet-switched streaming service. IEEE Netw 20(2):34–40
+39. Cuevas A, Moreno J, Vidales P, Einsiedler H (2006) The IMS service platform: a solution for
+next-generation network operators to be more than bit pipes. IEEE Commun Mag 44(8):75–
+81
+40. 3GPP (March 2006) Multimedia broadcast/multicast service (MBMS); Stage 1 (Release 7)
+Tech rep 3G TS 22.146 V7.1.0
+41. 3GPP2 (April 2006) Broadcast multicast service for CDMA2000 1x systems C.S0077 Rev.
+1.0
+42. Kang K, Kim T (2009) Improved error control for real-time video broadcasting over
+CDMA2000 networks. IEEE Trans Veh Technol 58(1):188–197
+43. Reimers U (1998) DVB
+44. Morello A, Mignone V (2006) DVB-S2: the second generation standard for satellite broadband services. Proc IEEE 94(1):210–227
+45. Vangelista L, Benvenuto N, Tomasin S, Nokes C, Stott J, Filippi A, Vlot M, Mignone V,
+Morello A (2009) Key technologies for next-generation terrestrial digital television standard
+DVB-T2. IEEE Commun Mag 47(10):146–153
+46. Postel J (1981) Internet protocol
+www.it-ebooks.info
+156 7 Support for Communication-Based Services
+47. Paila T, Roca V, Walsh R, Luby M, Lehtonen R (2012) FLUTE-file delivery over unidirectional transport
+48. Fan CP, Su GA (2009) Efficient fast 1-D 8× 8 inverse integer transform for VC-1 application.
+IEEE Trans Circuits Syst Video Technol 19(4):584–590
+49. Varga I (2004) Audio codec for mobile multimedia applications. In: IEEE 6th workshop on
+multimedia signal processing, 2004, IEEE, pp 450–453
+50. Fitzek F, Reisslein M (2001) A prefetching protocol for continuous media streaming in wireless environments. IEEE J Sel Areas Commun 19(10):2015–2028
+51. Padhye J, Padhye J, Towsley D, Kurose J, Towsley D, Koodli R (1999) A model based TCPfriendly rate control protocol
+52. Sisalem D, Wolisz A (2000) LDA+ TCP-friendly adaptation: a measurement and comparison
+study. In: The 10th international workshop on network and operating systems support for
+digital audio and video (NOSSDAV’2000), pp 25–28
+53. Rejaie R, H M, Yu H Estrin D (1999) Proxy caching mechanism for multimedia playback
+streams in the Internet. In: Proceedings of the 4th international web caching workshop
+54. Rejaie R, Yu H, Handley M, Estrin D (2000) Multimedia proxy caching mechanism for
+quality adaptive streaming applications in the Internet. In: Proceedings of IEEE nineteenth
+annual joint conference of the IEEE computer and communications societies, INFOCOM
+2000, vol 2, pp 980–989
+55. van Der Schaar M, Sai Shankar N (2005) Cross-layer wireless multimedia transmission:
+challenges, principles, and new paradigms. IEEE Wirel Commun 12(4):50–58
+56. Muntean GM, Perry P, Murphy L (2004) A new adaptive multimedia streaming system for
+all-IP multi-service networks. IEEE Trans Broadcast 50(1):1–10
+57. Li Q, van der Schaar M (2004) Providing adaptive qos to layered video over wireless local
+area networks through real-time retry limit adaptation. IEEE Trans Multimed 6(2):278–290
+58. Shah S, Chen K, Nahrstedt K (2003) Dynamic bandwidth management for single-hop ad hoc
+wireless networks. In: Proceedings of the first IEEE international conference on pervasive
+computing and communications, 23–26 2003 (PerCom 2003), pp 195–203
+59. Cha KA (2004) Content complexity adaptation for MPEG-4 audio-visual scene. IEEE Trans
+Consum Electron 50(2):760–765
+60. van der Schaar M, Radha H (2002) Adaptive motion-compensation fine-granular-scalability
+(AMC-FGS) for wireless video. IEEE Trans Circuits Syst Video Technol 12(6):360–371
+61. Cranley N, Perry P, Murphy L (2005) Optimum adaptation trajectories for streamed multimedia. Multimed Syst 10(5):392–401
+62. Gulliver S, Ghinea G (2004) Stars in their eyes: what eye-tracking reveals about multimedia
+perceptual quality. IEEE Trans Syst Man Cybern, Part A, Syst Hum 34(4):472–482
+63. Ahmed T, Mehaoua A, Boutaba R, Iraqi Y (2005) Adaptive packet video streaming over IP
+networks: a cross-layer approach. IEEE J Sel Areas Commun 23(2):385–401
+64. Chiang JC, Hsieh CS, Chang G, Jou FD, Lie WN (2010) Region-of-interest based rate control
+scheme with flexible quality on demand. In: IEEE international conference on multimedia
+and expo (ICME), 2010, pp 238–242
+65. Huang T (2010) Region of interest extraction and adaptation in scalable video coding. In:
+Seventh international conference on fuzzy systems and knowledge discovery (FSKD), 2010,
+vol 5, pp 2320–2323
+66. Nuriel T, Malah D (2010) Region-of-interest based adaptation of video to mobile devices. In:
+4th international symposium on communications, control and signal processing (ISCCSP),
+
+
+
