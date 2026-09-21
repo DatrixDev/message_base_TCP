@@ -63,7 +63,7 @@ public class ClientHandler extends Thread {
                             DirectoryServer.onlineUsers.get(parts[1]);
 
                     if (peerAddress == null) {
-                        send("ERROR|Nguoi dung khong online");
+                        send("ERROR|Người dùng không online");
                     } else {
                         send("PEER|" + parts[1]
                                 + "|" + peerAddress);
