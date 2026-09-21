@@ -54,7 +54,7 @@ public class ClientHandler extends Thread {
 
                     System.out.println(username + " online");
 
-                    send("SUCCESS|Dang nhap thanh cong");
+                    send("SUCCESS|Đăng nhập thành công");
 
                     DirectoryServer.broadcastOnlineUsers();
 
