@@ -138,7 +138,7 @@ public class ChatFrame extends JFrame implements PeerEventListener {
         messageField.setBackground(new Color(65, 78, 92));
         messageField.setBorder(new EmptyBorder(10, 8, 10, 8));
         messageField.addActionListener(e -> sendMessage());
-        messageField.setText("Write a message here...");
+        messageField.setText("Nhập tin nhắn");
         messageField.setForeground(new Color(170, 175, 180));
 
         messageField.addFocusListener(new java.awt.event.FocusAdapter() {
