@@ -1,30 +1,28 @@
 package com.datrixdev.chat;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ChatFrame extends JFrame implements PeerEventListener {
-    private String username;
-    private ChatClient chatClient;
-    private PeerListener peerListener;
-
+    private final String username;
+    private final ChatClient chatClient;
+    private final PeerListener peerListener;
     private DefaultListModel<String> userListModel;
     private JList<String> userList;
-    private JTextArea chatArea;
+    private JPanel messagePanel;
+    private JScrollPane messageScrollPane;
     private JTextField messageField;
-    private Map<String, StringBuilder> conversations =
-            new ConcurrentHashMap<>();
+    private final Map<String, List<ChatMessage>> conversations = new ConcurrentHashMap<>();
 
-    public ChatFrame(
-            String username,
-            ChatClient chatClient,
-            PeerListener peerListener
-    ) {
+    public ChatFrame(String username, ChatClient chatClient, PeerListener peerListener) {
         this.username = username;
         this.chatClient = chatClient;
         this.peerListener = peerListener;
@@ -32,50 +30,160 @@ public class ChatFrame extends JFrame implements PeerEventListener {
         peerListener.setEventListener(this);
         chatClient.setOnlineUsersListener(this::updateOnlineUsers);
 
-        setTitle("P2P Chat - " + username);
-        setSize(800, 500);
+        setTitle("P2P Chat");
+        setSize(900, 600);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLayout(new BorderLayout());
+        getContentPane().setBackground(new Color(35, 49, 63));
+
+        JPanel leftPanel = new JPanel(new BorderLayout());
+        leftPanel.setPreferredSize(new Dimension(300, 0));
+        leftPanel.setBackground(Color.WHITE);
+        leftPanel.setBorder(
+                BorderFactory.createMatteBorder(
+                        0, 0, 0, 1,
+                        new Color(220, 220, 220)
+                )
+        );
+        JLabel titleLabel = new JLabel("  P2P Chat");
+        titleLabel.setFont(new Font("SansSerif", Font.BOLD, 22));
+        titleLabel.setForeground(Color.BLACK);
+        titleLabel.setBorder(
+                BorderFactory.createCompoundBorder(
+                        BorderFactory.createMatteBorder(
+                                0, 0, 1, 0,
+                                new Color(230, 230, 230)
+                        ),
+                        new EmptyBorder(10, 15, 10, 15)
+                )
+        );
+        leftPanel.add(titleLabel, BorderLayout.NORTH);
 
         userListModel = new DefaultListModel<>();
         userList = new JList<>(userListModel);
+        userList.setBackground(Color.WHITE);
+        userList.setForeground(Color.BLACK);
+        userList.setSelectionBackground(new Color(235, 235, 235));
+        userList.setSelectionForeground(Color.BLACK);
+        userList.setFixedCellHeight(75);
+        userList.setBorder(new EmptyBorder(10, 10, 10, 10));
+        userList.setCellRenderer(new UserListRenderer());
 
-        userList.addListSelectionListener(e -> {
-            if (!e.getValueIsAdjusting()) {
-                showSelectedConversation();
-            }
-        });
+        JScrollPane userScroll = new JScrollPane(userList);
+        userScroll.setBorder(null);
+        userScroll.getViewport().setBackground(Color.WHITE);
+        leftPanel.add(userScroll, BorderLayout.CENTER);
 
+        JPanel centerPanel = new JPanel(new BorderLayout());
+        centerPanel.setBackground(Color.WHITE);
 
-        JPanel leftPanel = new JPanel(new BorderLayout());
-        leftPanel.setPreferredSize(new Dimension(180, 0));
-        leftPanel.setBorder(
-                BorderFactory.createTitledBorder("Online")
-        );
+        JPanel chatHeader = new JPanel(new BorderLayout());
+        chatHeader.setBackground(Color.WHITE);
+        chatHeader.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createMatteBorder(0, 0, 1, 0, new Color(230, 230, 230)),
+                new EmptyBorder(15, 20, 15, 20)
+        ));
 
-        leftPanel.add(new JScrollPane(userList), BorderLayout.CENTER);
+        JLabel chatAvatar = new JLabel();
+        chatAvatar.setPreferredSize(new Dimension(42, 42));
 
+        JLabel chatTitle = new JLabel("Chọn người để trò chuyện");
+        chatTitle.setForeground(Color.BLACK);
+        chatTitle.setFont(new Font("SansSerif", Font.BOLD, 18));
 
-        chatArea = new JTextArea();
-        chatArea.setEditable(false);
+        JPanel userHeader = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
+        userHeader.setOpaque(false);
+        userHeader.add(chatAvatar);
+        userHeader.add(chatTitle);
 
-        messageField = new JTextField();
-        messageField.addActionListener(e -> sendMessage());
+        chatHeader.add(userHeader, BorderLayout.WEST);
+        centerPanel.add(chatHeader, BorderLayout.NORTH);
+        centerPanel.add(chatHeader, BorderLayout.NORTH);
 
-        JButton sendButton = new JButton("Gửi");
-        sendButton.addActionListener(e -> sendMessage());
+        messagePanel = new JPanel();
+        messagePanel.setLayout(new BoxLayout(messagePanel, BoxLayout.Y_AXIS));
+        messagePanel.setBackground(new Color(245, 245, 245));
+        messagePanel.setBorder(new EmptyBorder(15, 10, 15, 10));
 
-        JButton fileButton = new JButton("Gửi file");
+        messageScrollPane = new JScrollPane(messagePanel);
+        messageScrollPane.setBorder(null);
+        messageScrollPane.getViewport().setBackground(new Color(245, 245, 245));
+        messageScrollPane.getVerticalScrollBar().setUnitIncrement(16);
+        centerPanel.add(messageScrollPane, BorderLayout.CENTER);
+        JPanel bottomPanel = new JPanel(new BorderLayout());
+        bottomPanel.setBackground(Color.WHITE);
+        bottomPanel.setBorder(new EmptyBorder(10, 15, 10, 15));
+
+        JPanel inputPanel = new JPanel(new BorderLayout());
+        inputPanel.setBackground(new Color(65, 78, 92));
+        inputPanel.setBorder(new EmptyBorder(3, 5, 3, 5));
+
+        JButton fileButton = new JButton("📎");
+        fileButton.setFont(new Font("SansSerif", Font.PLAIN, 20));
+        fileButton.setForeground(new Color(210, 215, 220));
+        fileButton.setBackground(new Color(65, 78, 92));
+        fileButton.setBorderPainted(false);
+        fileButton.setFocusPainted(false);
+        fileButton.setContentAreaFilled(false);
+        fileButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
         fileButton.addActionListener(e -> chooseAndSendFile());
 
-        JPanel bottomPanel = new JPanel(new BorderLayout(10, 0));
-        bottomPanel.add(fileButton, BorderLayout.WEST);
-        bottomPanel.add(messageField, BorderLayout.CENTER);
-        bottomPanel.add(sendButton, BorderLayout.EAST);
+        messageField = new JTextField();
+        messageField.setFont(new Font("SansSerif", Font.PLAIN, 15));
+        messageField.setForeground(Color.WHITE);
+        messageField.setCaretColor(Color.WHITE);
+        messageField.setBackground(new Color(65, 78, 92));
+        messageField.setBorder(new EmptyBorder(10, 8, 10, 8));
+        messageField.addActionListener(e -> sendMessage());
+        messageField.setText("Write a message here...");
+        messageField.setForeground(new Color(170, 175, 180));
 
+        messageField.addFocusListener(new java.awt.event.FocusAdapter() {
+            @Override
+            public void focusGained(java.awt.event.FocusEvent e) {
+                if (messageField.getText().equals("Write a message here...")) {
+                    messageField.setText("");
+                    messageField.setForeground(Color.WHITE);
+                }
+            }
+
+            @Override
+            public void focusLost(java.awt.event.FocusEvent e) {
+                if (messageField.getText().isEmpty()) {
+                    messageField.setText("Write a message here...");
+                    messageField.setForeground(new Color(170, 175, 180));
+                }
+            }
+        });
+        JButton sendButton = new JButton("➤");
+        sendButton.setFont(new Font("SansSerif", Font.BOLD, 22));
+        sendButton.setForeground(new Color(0, 170, 255));
+        sendButton.setBackground(new Color(65, 78, 92));
+        sendButton.setBorderPainted(false);
+        sendButton.setFocusPainted(false);
+        sendButton.setContentAreaFilled(false);
+        sendButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        sendButton.addActionListener(e -> sendMessage());
+
+        inputPanel.add(fileButton, BorderLayout.WEST);
+        inputPanel.add(messageField, BorderLayout.CENTER);
+        inputPanel.add(sendButton, BorderLayout.EAST);
+
+        bottomPanel.add(inputPanel, BorderLayout.CENTER);
+        centerPanel.add(bottomPanel, BorderLayout.SOUTH);
         add(leftPanel, BorderLayout.WEST);
-        add(new JScrollPane(chatArea), BorderLayout.CENTER);
-        add(bottomPanel, BorderLayout.SOUTH);
+        add(centerPanel, BorderLayout.CENTER);
+        userList.addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting()) {
+                String selectedUser = userList.getSelectedValue();
+                if (selectedUser != null) {
+                    chatTitle.setText(selectedUser);
+                    chatAvatar.setIcon(AvatarUtil.getAvatar(selectedUser, 42));
+                    showSelectedConversation();
+                }
+            }
+        });
 
         addWindowListener(new WindowAdapter() {
             @Override
@@ -85,7 +193,6 @@ public class ChatFrame extends JFrame implements PeerEventListener {
                 } catch (Exception ex) {
                     System.out.println("Khong the ngat ket noi Server");
                 }
-
                 peerListener.stopListener();
             }
         });
@@ -100,9 +207,7 @@ public class ChatFrame extends JFrame implements PeerEventListener {
     private void updateOnlineUsers(String response) {
         SwingUtilities.invokeLater(() -> {
             String selectedUser = userList.getSelectedValue();
-
             userListModel.clear();
-
             String users = response.substring(6);
 
             if (!users.isEmpty()) {
@@ -124,14 +229,11 @@ public class ChatFrame extends JFrame implements PeerEventListener {
         String message = messageField.getText().trim();
 
         if (targetUser == null) {
-            JOptionPane.showMessageDialog(
-                    this,
-                    "Hay chon nguoi can nhan"
-            );
+            JOptionPane.showMessageDialog(this, "Hãy chọn người cần nhắn");
             return;
         }
 
-        if (message.isEmpty()) {
+        if (message.isEmpty() || message.equals("Write a message here...")) {
             return;
         }
 
@@ -142,37 +244,20 @@ public class ChatFrame extends JFrame implements PeerEventListener {
                 if (response.startsWith("PEER|")) {
                     String[] parts = response.split("\\|");
                     String[] address = parts[2].split(":");
-
                     String ip = address[0];
                     int port = Integer.parseInt(address[1]);
 
-                    PeerSender.sendMessage(
-                            ip,
-                            port,
-                            username,
-                            message
-                    );
-
-                    addToConversation(
-                            targetUser,
-                            "Bạn: " + message
-                    );
-
-                    SwingUtilities.invokeLater(() ->
-                            messageField.setText("")
-                    );
-
+                    PeerSender.sendMessage(ip, port, username, message);
+                    addMessage(targetUser, message, true);
+                    SwingUtilities.invokeLater(() -> messageField.setText(""));
                 } else {
-                    addToConversation(
-                            targetUser,
-                            "Người dùng không online"
+                    SwingUtilities.invokeLater(() ->
+                            JOptionPane.showMessageDialog(this, "Người dùng không online")
                     );
                 }
-
             } catch (Exception e) {
-                addToConversation(
-                        targetUser,
-                        "Khong gui duoc tin nhan"
+                SwingUtilities.invokeLater(() ->
+                        JOptionPane.showMessageDialog(this, "Không gửi được tin nhắn")
                 );
             }
         }).start();
@@ -182,17 +267,13 @@ public class ChatFrame extends JFrame implements PeerEventListener {
         String targetUser = userList.getSelectedValue();
 
         if (targetUser == null) {
-            JOptionPane.showMessageDialog(
-                    this,
-                    "Hay chon nguoi can nhan file"
-            );
+            JOptionPane.showMessageDialog(this, "Hãy chọn người cần nhận file");
             return;
         }
 
         JFileChooser chooser = new JFileChooser();
 
-        if (chooser.showOpenDialog(this)
-                != JFileChooser.APPROVE_OPTION) {
+        if (chooser.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) {
             return;
         }
 
@@ -205,34 +286,19 @@ public class ChatFrame extends JFrame implements PeerEventListener {
                 if (response.startsWith("PEER|")) {
                     String[] parts = response.split("\\|");
                     String[] address = parts[2].split(":");
-
                     String ip = address[0];
                     int port = Integer.parseInt(address[1]);
 
-                    PeerSender.sendFile(
-                            ip,
-                            port,
-                            username,
-                            selectedFile
-                    );
-
-                    addToConversation(
-                            targetUser,
-                            "Ban da gui file: "
-                                    + selectedFile.getName()
-                    );
-
+                    PeerSender.sendFile(ip, port, username, selectedFile);
+                    addMessage(targetUser, "Đã gửi file: " + selectedFile.getName(), true);
                 } else {
-                    addToConversation(
-                            targetUser,
-                            "Nguoi dung khong online"
+                    SwingUtilities.invokeLater(() ->
+                            JOptionPane.showMessageDialog(this, "Người dùng không online")
                     );
                 }
-
             } catch (Exception e) {
-                addToConversation(
-                        targetUser,
-                        "Khong gui duoc file"
+                SwingUtilities.invokeLater(() ->
+                        JOptionPane.showMessageDialog(this, "Không gửi được file")
                 );
             }
         }).start();
@@ -240,32 +306,20 @@ public class ChatFrame extends JFrame implements PeerEventListener {
 
     @Override
     public void onMessageReceived(String from, String message) {
-        addToConversation(from, from + ": " + message);
+        addMessage(from, message, false);
     }
 
     @Override
-    public void onFileReceived(
-            String from,
-            String fileName,
-            File savedFile
-    ) {
-        addToConversation(
-                from,
-                from + " đã gửi file: " + fileName
-                        + "\nĐã lưu tại: "
-                        + savedFile.getAbsolutePath()
-        );
+    public void onFileReceived(String from, String fileName, File savedFile) {
+        String text = "Đã nhận file: " + fileName + "\nLưu tại: " + savedFile.getAbsolutePath();
+        addMessage(from, text, false);
     }
 
-    private void addToConversation(String user, String text) {
-        conversations
-                .computeIfAbsent(user, key -> new StringBuilder())
-                .append(text)
-                .append("\n");
+    private void addMessage(String user, String text, boolean mine) {
+        conversations.computeIfAbsent(user, key -> new ArrayList<>()).add(new ChatMessage(text, mine));
 
         SwingUtilities.invokeLater(() -> {
             String selectedUser = userList.getSelectedValue();
-
             if (user.equals(selectedUser)) {
                 showSelectedConversation();
             }
@@ -274,18 +328,34 @@ public class ChatFrame extends JFrame implements PeerEventListener {
 
     private void showSelectedConversation() {
         String selectedUser = userList.getSelectedValue();
+        messagePanel.removeAll();
 
         if (selectedUser == null) {
-            chatArea.setText("");
+            messagePanel.revalidate();
+            messagePanel.repaint();
             return;
         }
 
-        StringBuilder conversation = conversations.get(selectedUser);
+        List<ChatMessage> messages = conversations.get(selectedUser);
 
-        if (conversation == null) {
-            chatArea.setText("");
-        } else {
-            chatArea.setText(conversation.toString());
+        if (messages != null) {
+            for (ChatMessage message : messages) {
+                MessageBubble bubble = new MessageBubble(
+                        message.getText(),
+                        message.isMine(),
+                        message.isMine() ? username : selectedUser
+                );
+                messagePanel.add(bubble);
+                messagePanel.add(Box.createVerticalStrut(5));
+            }
         }
+
+        messagePanel.revalidate();
+        messagePanel.repaint();
+
+        SwingUtilities.invokeLater(() -> {
+            JScrollBar vertical = messageScrollPane.getVerticalScrollBar();
+            vertical.setValue(vertical.getMaximum());
+        });
     }
 }

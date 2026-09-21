@@ -52,7 +52,7 @@ public class LoginFrame extends JFrame {
 
         new Thread(() -> {
             try {
-                ChatClient chatClient = new ChatClient("127.0.0.1");
+                ChatClient chatClient = new ChatClient("172.26.86.8");
                 PeerListener peerListener = new PeerListener();
 
                 String response = chatClient.register(
