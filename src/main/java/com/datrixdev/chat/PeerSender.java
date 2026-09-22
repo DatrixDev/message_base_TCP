@@ -15,11 +15,21 @@ public class PeerSender {
             String message
     ) throws IOException {
 
+        System.out.println(
+                "[P2P-SEND] " + from +
+                        " -> " + ip + ":" + port +
+                        " | MESSAGE: " + message
+        );
+
         Socket socket = new Socket(ip, port);
 
-        DataOutputStream out = new DataOutputStream(
-                socket.getOutputStream()
+        System.out.println(
+                "[P2P-SEND] Connected successfully to "
+                        + ip + ":" + port
         );
+
+        DataOutputStream out =
+                new DataOutputStream(socket.getOutputStream());
 
         out.writeUTF("MESSAGE");
         out.writeUTF(from);
@@ -36,7 +46,19 @@ public class PeerSender {
             File file
     ) throws IOException {
 
+        System.out.println(
+                "[P2P-SEND-FILE] " + from +
+                        " -> " + ip + ":" + port +
+                        " | FILE: " + file.getName() +
+                        " | SIZE: " + file.length() + " bytes"
+        );
+
         Socket socket = new Socket(ip, port);
+
+        System.out.println(
+                "[P2P-SEND-FILE] Connected successfully to "
+                        + ip + ":" + port
+        );
 
         DataOutputStream out = new DataOutputStream(
                 socket.getOutputStream()

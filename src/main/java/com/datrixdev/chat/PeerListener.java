@@ -30,6 +30,12 @@ public class PeerListener extends Thread {
             while (true) {
                 Socket socket = serverSocket.accept();
 
+                System.out.println(
+                        "[P2P-ACCEPT] Connection from "
+                                + socket.getInetAddress().getHostAddress()
+                                + ":" + socket.getPort()
+                );
+
                 new Thread(() -> handlePeer(socket)).start();
             }
 

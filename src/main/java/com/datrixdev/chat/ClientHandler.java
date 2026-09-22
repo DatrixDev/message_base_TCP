@@ -46,6 +46,10 @@ public class ClientHandler extends Thread {
                             username,
                             ip + ":" + peerPort
                     );
+                    System.out.println(
+                            "[REGISTER] " + username +
+                                    " -> " + ip + ":" + peerPort
+                    );
 
                     DirectoryServer.onlineClients.put(
                             username,

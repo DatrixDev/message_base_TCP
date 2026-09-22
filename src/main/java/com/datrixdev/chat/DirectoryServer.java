@@ -34,9 +34,16 @@ public class DirectoryServer {
 
             while (true) {
                 Socket socket = server.accept();
+
+                String clientIp = socket.getInetAddress().getHostAddress();
+                int clientPort = socket.getPort();
+
+                System.out.println(
+                        "[SERVER] Client connected: " + clientIp + ":" + clientPort
+                );
+
                 new ClientHandler(socket);
             }
-
         } catch (IOException e) {
             e.printStackTrace();
         }
