@@ -144,7 +144,7 @@ public class ChatFrame extends JFrame implements PeerEventListener {
         messageField.addFocusListener(new java.awt.event.FocusAdapter() {
             @Override
             public void focusGained(java.awt.event.FocusEvent e) {
-                if (messageField.getText().equals("Write a message here...")) {
+                if (messageField.getText().equals("Nhập tin nhắn")) {
                     messageField.setText("");
                     messageField.setForeground(Color.WHITE);
                 }
@@ -153,7 +153,7 @@ public class ChatFrame extends JFrame implements PeerEventListener {
             @Override
             public void focusLost(java.awt.event.FocusEvent e) {
                 if (messageField.getText().isEmpty()) {
-                    messageField.setText("Write a message here...");
+                    messageField.setText("Nhập tin nhắn");
                     messageField.setForeground(new Color(170, 175, 180));
                 }
             }
@@ -176,6 +176,9 @@ public class ChatFrame extends JFrame implements PeerEventListener {
         centerPanel.add(bottomPanel, BorderLayout.SOUTH);
         add(leftPanel, BorderLayout.WEST);
         add(centerPanel, BorderLayout.CENTER);
+
+
+
         userList.addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) {
                 String selectedUser = userList.getSelectedValue();
@@ -186,6 +189,9 @@ public class ChatFrame extends JFrame implements PeerEventListener {
                 }
             }
         });
+
+
+
 
         addWindowListener(new WindowAdapter() {
             @Override
@@ -226,6 +232,9 @@ public class ChatFrame extends JFrame implements PeerEventListener {
         });
     }
 
+
+
+
     private void sendMessage() {
         String targetUser = userList.getSelectedValue();
         String message = messageField.getText().trim();
@@ -235,7 +244,7 @@ public class ChatFrame extends JFrame implements PeerEventListener {
             return;
         }
 
-        if (message.isEmpty() || message.equals("Write a message here...")) {
+        if (message.isEmpty() || message.equals("Nhập tin nhắn")) {
             return;
         }
 
@@ -248,6 +257,8 @@ public class ChatFrame extends JFrame implements PeerEventListener {
                     String[] address = parts[2].split(":");
                     String ip = address[0];
                     int port = Integer.parseInt(address[1]);
+
+
 
                     PeerSender.sendMessage(ip, port, username, message);
                     addMessage(targetUser, message, true);
@@ -290,6 +301,8 @@ public class ChatFrame extends JFrame implements PeerEventListener {
                     String[] address = parts[2].split(":");
                     String ip = address[0];
                     int port = Integer.parseInt(address[1]);
+
+
 
                     PeerSender.sendFile(ip, port, username, selectedFile);
 
